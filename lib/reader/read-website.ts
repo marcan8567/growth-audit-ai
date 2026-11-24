@@ -1,3 +1,4 @@
+import { extractBrand } from "./brand";
 import { extractPage, type LinkInfo } from "./extract";
 import { fetchHtml } from "./fetch-page";
 import type { PageData, PageKind, SocialLink, WebsiteData } from "./types";
@@ -90,10 +91,12 @@ export async function readWebsite(input: string): Promise<WebsiteData> {
     }
   });
 
+  const domain = siteKey(new URL(finalUrl).hostname);
   return {
     inputUrl: input,
     finalUrl,
-    domain: siteKey(new URL(finalUrl).hostname),
+    domain,
+    brand: extractBrand(homeHtml, finalUrl, domain),
     fetchedAt: new Date().toISOString(),
     pages,
     socialLinks,

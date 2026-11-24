@@ -21,6 +21,8 @@ export interface PageData {
   wordCount: number;
 }
 
+import type { Brand } from "./brand";
+
 export interface WebsiteData {
   inputUrl: string;
   finalUrl: string;
@@ -28,5 +30,6 @@ export interface WebsiteData {
   fetchedAt: string;
   pages: PageData[];
   socialLinks: SocialLink[];
+  brand: Brand;
   failedPages: { kind: PageKind; url: string; error: string }[];
 }

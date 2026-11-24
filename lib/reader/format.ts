@@ -48,6 +48,7 @@ export function summarizeWebsite(site: WebsiteData) {
       textPreview: p.text.slice(0, 280),
     })),
     socialLinks: site.socialLinks,
+    brand: site.brand,
     failedPages: site.failedPages,
   };
 }

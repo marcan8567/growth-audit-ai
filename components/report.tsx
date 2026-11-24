@@ -8,6 +8,7 @@ import type { AutomationPlan } from "@/lib/schemas/automation-plan";
 import type { ContentPack } from "@/lib/schemas/content-pack";
 import type { BrandVoiceResult } from "@/lib/steps/brand-voice";
 import type { GrowthAuditResult } from "@/lib/steps/growth-audit";
+import { postText, SocialPostPreview } from "@/components/social-post";
 import { SITE } from "@/lib/site";
 import type { ReportData } from "@/lib/store/reports";
 
@@ -24,7 +25,7 @@ export function Report({ data, showRawData = false }: { data: ReportData; showRa
       {speed && <Speed speed={speed} />}
       {audit && <Scores audit={audit} />}
       {brandVoice && <BrandVoice voice={brandVoice} />}
-      {contentPack && <Content pack={contentPack} domain={site?.domain} />}
+      {contentPack && <Content pack={contentPack} site={site} />}
       {automation && <Automations plan={automation} />}
 
       {showRawData && Object.keys(data).length > 0 && (
@@ -222,33 +223,31 @@ function BrandVoice({ voice }: { voice: BrandVoiceResult }) {
   );
 }
 
-function Content({ pack, domain }: { pack: ContentPack; domain?: string }) {
+function Content({ pack, site }: { pack: ContentPack; site?: WebsiteSummary }) {
   // Older saved reports have 14 posts; every report now shows one, and the full plan is offered on LinkedIn.
   const post = pack.posts[0];
   if (!post) return null;
+  const domain = site?.domain ?? "";
+  // Reports saved before brand detection get a name from the domain and the company's initial as avatar.
+  const brand = site?.brand ?? { name: nameFromDomain(domain), iconUrl: null, color: null };
   return (
-    <Section title="Social media post" subtitle="One ready-to-post suggestion in the brand's voice, for the channel that suits the company best.">
-      <article className="rounded-lg border border-stone-200 bg-white p-5 text-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge>{post.platform}</Badge>
-          <Badge>{post.format}</Badge>
-          <span className="text-stone-400">{post.pillar}</span>
+    <Section
+      title="Social media post"
+      subtitle={`A ready-to-post suggestion in the brand's voice, previewed as it would look on ${post.platform}.`}
+    >
+      <div className="max-w-xl">
+        <SocialPostPreview post={post} brand={brand} domain={domain} socialLinks={site?.socialLinks ?? []} />
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <CopyButton
+            text={postText(post)}
+            label="Copy post text"
+            className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-medium text-stone-700 hover:border-stone-900"
+          />
+          <span className="text-stone-500">
+            Format: {post.format}. Theme: {post.pillar}.
+          </span>
         </div>
-        <p className="mt-3 text-base font-semibold">{post.hook}</p>
-        <p className="mt-2 whitespace-pre-line leading-relaxed text-stone-700">{post.body}</p>
-        <p className="mt-3 text-stone-600">
-          <span className="font-medium">Call to action: </span>
-          {post.cta}
-        </p>
-        {post.hashtags.length > 0 && (
-          <p className="mt-1 text-emerald-700">{post.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ")}</p>
-        )}
-        <CopyButton text={`${post.hook}
-
-${post.body}
-
-${post.cta}`} label="Copy post" />
-      </article>
+      </div>
 
       {SITE.linkedinUrl && (
         <div className="rounded-xl bg-ink p-6 text-white">
@@ -269,6 +268,15 @@ ${post.cta}`} label="Copy post" />
       )}
     </Section>
   );
+}
+
+/** "acme-labs.co.uk" → "Acme Labs" (kept here so the browser bundle doesn't pull in the HTML parser). */
+function nameFromDomain(domain: string): string {
+  const first = domain.replace(/^www./, "").split(".")[0] ?? domain;
+  return first
+    .split(/[-_]/)
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ") || "Company";
 }
 
 function Automations({ plan }: { plan: AutomationPlan }) {

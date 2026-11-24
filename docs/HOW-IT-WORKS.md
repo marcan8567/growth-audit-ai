@@ -130,6 +130,17 @@ The homepage shows the three newest audits as boxes (website, score, grade, how 
 
 **Tip:** before an interview, run the company's website with your access code. It then appears on your homepage as a recent audit, and you can send them the report link.
 
+## 12. The post, previewed as it would look in the feed (`components/social-post.tsx`)
+
+| Decision | Why |
+| --- | --- |
+| **Each platform has its own layout**: LinkedIn and Facebook (header, "see more", action bar), X (handle, 280-character count), Instagram (square visual, caption with "more") | A marketer judges a post by how it looks in the feed, not as plain text |
+| **Posted by the audited company**: name, logo and colour are read from its homepage (`lib/reader/brand.ts`, no extra requests) | It feels like their post. Sites without a declared colour get one from a small palette, always the same per domain |
+| **Designed visuals** for image, carousel and short-video posts: the AI writes a short headline, the page sets it on the brand colour | A branded graphic without generating images |
+| **No official logos, no invented likes or follower counts** | The logos are trademarks, and fake engagement numbers would be made-up data |
+| **Platform rules in the schema**: X posts must fit in 280 characters, Instagram posts need a visual, visual formats need a headline | Broken rules become precise retry messages, like every other step |
+| **A sharper prompt**: scroll-stopping first line, wit in the brand's own voice, banned clichés ("game-changer", "unlock", "Did you know") | Generic AI copy is easy to spot; the bans and the hook rule push it toward something a good social media manager would write |
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.
@@ -139,4 +150,5 @@ The homepage shows the three newest audits as boxes (website, score, grade, how 
 - Each audit makes four AI calls and sends the website text with each one. Fine at demo scale; at volume, prompt caching or a shared summary would cut the cost.
 - Visitors are counted by IP address, so people on a shared network (an office, a university) share the 3 free audits, and someone changing networks gets new ones. The site-wide daily cap and the AI provider's monthly spending cap are the real cost protection.
 - PageSpeed tests the homepage only, on mobile. Google's response time varies a lot (18s to over 90s in testing), so the wait is capped at 60 seconds and the audit carries on without speed data if Google is too slow.
+- The company logo comes from its site icon; some sites only provide a white logo, which shows faintly on the grey backdrop.
 - The calls-to-action list sometimes includes navigation links styled as buttons (for example "Product"), so the CTA count is a rough signal, not an exact one.
