@@ -5,6 +5,7 @@ import { Report } from "@/components/report";
 import { redactReportForVisitor } from "@/lib/report-access";
 import { loadReport } from "@/lib/store/reports";
 import { track } from "@/lib/store/stats";
+import { Logo } from "@/components/logo";
 
 // A saved report, read from Redis on every visit. Links look like /r/AbC123xYz_.
 export const dynamic = "force-dynamic";
@@ -32,8 +33,8 @@ export default async function SavedReportPage({ params }: Props) {
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-8 px-6 pb-20 pt-6">
       <header className="flex items-center justify-between gap-4">
-        <Link href="/" className="whitespace-nowrap text-lg font-bold tracking-tight text-ink hover:underline">
-          Growth Audit AI
+        <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
+          <Logo />
         </Link>
         <Link
           href="/audit"

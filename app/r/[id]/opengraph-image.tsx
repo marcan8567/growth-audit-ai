@@ -32,7 +32,10 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#ffffff", padding: 64, color: INK, fontFamily: "Schibsted Grotesk" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", fontSize: 30, fontWeight: 700 }}>Growth Audit AI</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 30, fontWeight: 700 }}>
+            <svg width="40" height="40" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="#172033" strokeWidth="5" strokeLinecap="round" strokeDasharray="42.85 69.12" transform="rotate(-90 16 16)" /><circle cx="16" cy="16" r="11" fill="none" stroke="#ffe15a" strokeWidth="5" strokeLinecap="round" strokeDasharray="9.68 69.12" transform="rotate(176.4 16 16)" /></svg>
+            Growth Audit AI
+          </div>
           <div style={{ display: "flex", fontSize: 24, color: "#4a5468" }}>Growth audit</div>
         </div>
 

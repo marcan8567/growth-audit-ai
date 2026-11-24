@@ -8,6 +8,7 @@ import type { SiteCheck } from "@/lib/reader/checks";
 import type { WebsiteSummary } from "@/lib/reader/format";
 import type { ReportData } from "@/lib/store/reports";
 import { trackClick } from "@/lib/track-client";
+import { Logo } from "@/components/logo";
 
 type Status = "idle" | "running" | "done" | "error" | "skipped";
 
@@ -124,8 +125,8 @@ export default function AuditPage() {
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 pb-20 pt-6">
       <header>
-        <Link href="/" className="whitespace-nowrap text-lg font-bold tracking-tight text-ink hover:underline">
-          Growth Audit AI
+        <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
+          <Logo />
         </Link>
         <h1 className="mt-6 text-4xl font-bold tracking-tight text-ink">Audit a website</h1>
         <p className="mt-2 max-w-[62ch] leading-relaxed text-ink-soft">

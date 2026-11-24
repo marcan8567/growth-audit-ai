@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/logo";
 
 /**
  * Private funnel dashboard. Asks for the access code, then shows the last 30 days.
@@ -50,8 +51,8 @@ export default function StatsPage() {
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 pb-20 pt-6 text-ink">
       <header className="flex items-center justify-between">
-        <Link href="/" className="whitespace-nowrap text-lg font-bold tracking-tight hover:underline">
-          Growth Audit AI
+        <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
+          <Logo />
         </Link>
         {stats && (
           <button type="button" onClick={() => void load(sessionStorage.getItem(CODE_KEY) ?? code)} className="rounded-lg px-3 py-2 text-sm font-medium text-ink-soft hover:bg-mist hover:text-ink">

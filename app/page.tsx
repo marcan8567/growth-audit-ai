@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SITE } from "@/lib/site";
 import { listRecentAudits, loadReport, type RecentAudit, type SavedReport } from "@/lib/store/reports";
 import { track } from "@/lib/store/stats";
+import { Logo } from "@/components/logo";
 
 // The sample report is read from Redis on each visit (one small, fast read; well within Upstash's free tier).
 export const dynamic = "force-dynamic";
@@ -19,8 +20,8 @@ export default async function Home() {
   return (
     <div className="bg-white text-ink">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Growth Audit AI
+        <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
+          <Logo />
         </Link>
         <nav className="flex gap-6 text-sm font-medium text-ink-soft">
           {sample && (

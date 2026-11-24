@@ -103,6 +103,7 @@ read website + 10 code checks ──┬── brand voice ──── LinkedIn 
 | **One typeface (Schibsted Grotesk), ink navy and one yellow** | A consistent look across the homepage, audit page and shared reports. Green, amber and red appear only as score colours |
 | **The audit page moved from /test to /audit**, with a permanent redirect | "test" looks unfinished on a CV, and old links keep working |
 | **Project details in one file** (`lib/site.ts`) | Name, GitHub link and sample report can be changed without touching the page |
+| **The logo is a score ring** (`components/logo.tsx`, `app/icon.svg`): ink with one highlighter-yellow segment, plus the wordmark with the highlighter on "AI" | Built from the product's own signature element instead of a generic chart-and-arrow; it matches the reports and stays recognisable as a 16-pixel browser-tab icon |
 
 ## 10. One free post, then a call to action (lead generation)
 
