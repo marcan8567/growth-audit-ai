@@ -79,6 +79,19 @@ read website + 10 code checks ──┬── brand voice ──── content p
 
 **Talking point:** "Before an interview I run the company's own website through the tool and send them the report link. It shows the product and the thinking at the same time."
 
+## 8. Speed and mobile data from Google (`lib/reader/pagespeed.ts`)
+
+| Decision | Why |
+| --- | --- |
+| **Google PageSpeed Insights API** (free key, 25,000 requests a day) | Real measurements from Google instead of AI guesses. Google also uses page speed in search ranking, so it is the number marketers already trust |
+| **Started at second 0**, in parallel with reading the website | Google takes 15–45 seconds (sometimes more). Starting it first means the full audit takes no longer |
+| **The audit waits for it** and gets the results as facts | The SEO and conversion scores can then reflect real speed: on Basecamp the SEO verdict mentioned mobile performance because Google scored it 65 |
+| **Real Chrome-user data first, the lab test second** | Google's lab test simulates a slow phone connection. For Basecamp it measured 17.6s until the main content appeared, while real visitors see it in 1.4s. Using the lab number alone would wrongly call the site slow |
+| **Google's own thresholds** (main content ≤ 2.5s, layout shift ≤ 0.1, response to clicks ≤ 200ms) | These are the Core Web Vitals that Google publishes, so the checks are defensible in front of an SEO specialist |
+| **Optional**: without a key the step shows as "skipped" | Without a key, Google's shared quota is almost always used up. The rest of the audit still runs |
+
+**Talking point:** "I combine three kinds of evidence: facts measured by my own code, measurements from Google, and the AI's judgement on top. The AI has to agree with the first two."
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.
@@ -87,4 +100,5 @@ read website + 10 code checks ──┬── brand voice ──── content p
 - Scores are AI judgements, so running the same site twice can move a category by a point. The code checks underneath don't change.
 - Each audit makes four AI calls and sends the website text with each one. Fine at demo scale; at volume, prompt caching or a shared summary would cut the cost.
 - Visitors are counted by IP address, so people on a shared network (an office, a university) share the 3 free audits, and someone changing networks gets new ones. The site-wide daily cap and the AI provider's monthly spending cap are the real cost protection.
+- PageSpeed tests the homepage only, on mobile. Google's response time varies a lot (18s to over 90s in testing), so the wait is capped at 60 seconds and the audit carries on without speed data if Google is too slow.
 - The calls-to-action list sometimes includes navigation links styled as buttons (for example "Product"), so the CTA count is a rough signal, not an exact one.

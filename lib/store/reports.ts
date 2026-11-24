@@ -1,6 +1,7 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 import type { SiteCheck } from "@/lib/reader/checks";
+import type { PageSpeedResult } from "@/lib/reader/pagespeed";
 import type { WebsiteSummary } from "@/lib/reader/format";
 import type { AutomationPlan } from "@/lib/schemas/automation-plan";
 import type { ContentPack } from "@/lib/schemas/content-pack";
@@ -12,6 +13,7 @@ import { getRedis } from "./redis";
 export interface ReportData {
   site?: WebsiteSummary;
   checks?: SiteCheck[];
+  speed?: PageSpeedResult;
   brandVoice?: BrandVoiceResult;
   audit?: GrowthAuditResult;
   automation?: AutomationPlan;

@@ -3,6 +3,7 @@ import { runSiteChecks } from "@/lib/reader/checks";
 import { summarizeWebsite } from "@/lib/reader/format";
 import { readWebsite } from "@/lib/reader/read-website";
 import { normalizeInputUrl } from "@/lib/reader/url";
+import { fetchPageSpeed, isPageSpeedConfigured, type PageSpeedResult } from "@/lib/reader/pagespeed";
 import { runAutomationPlan } from "@/lib/steps/automation-plan";
 import { runBrandVoice } from "@/lib/steps/brand-voice";
 import { runContentPack } from "@/lib/steps/content-pack";
@@ -12,15 +13,16 @@ import { saveReport, type ReportData } from "@/lib/store/reports";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// Seconds. A full audit takes about a minute; Vercel's free plan allows up to 300s with Fluid compute.
-export const maxDuration = 120;
+// Seconds. A full audit usually takes 60–90s (the AI provider's speed varies); Vercel's free plan allows up to 300s with Fluid compute.
+export const maxDuration = 180;
 
 /**
  * POST { url, accessCode? } → a stream of progress events (NDJSON).
  *
  * Pipeline:
+ *   0. Google PageSpeed (speed + mobile), started at once because it is slow
  *   1. Read the website + code checks (no AI)
- *   2. In parallel: brand voice, growth audit, automation plan
+ *   2. In parallel: brand voice, growth audit (waits for PageSpeed), automation plan
  *   3. Content pack, as soon as the brand voice is ready (it writes in that voice)
  *   4. Save the report (Upstash Redis) so it has a shareable link
  *
@@ -82,6 +84,12 @@ export async function POST(request: Request) {
       }
 
       try {
+        // 0. Google PageSpeed takes 10–30 seconds, so it starts straight away, alongside reading the website.
+        const speed: Promise<PageSpeedResult | null> = isPageSpeedConfigured()
+          ? step("speed", () => fetchPageSpeed(normalizeInputUrl(url).href))
+          : (send({ type: "step", step: "speed", status: "skipped", message: "Not configured (no Google PageSpeed API key)." }),
+            Promise.resolve(null));
+
         // 1. Read the website. Nothing else can run without it, so a failure here ends the audit.
         send({ type: "step", step: "read", status: "running" });
         const started = Date.now();
@@ -98,9 +106,10 @@ export async function POST(request: Request) {
         send({ type: "step", step: "read", status: "done", data: { site: report.site, checks }, ms: Date.now() - started });
 
         // 2 + 3. The AI steps. The content pack waits only for the brand voice, not for the others.
+        // The audit waits for Google's speed data, so its scores can use it (it runs without it if that failed).
         const brandVoice = step("brandVoice", () => runBrandVoice(site));
         await Promise.all([
-          step("audit", () => runGrowthAudit(site, checks)),
+          speed.then((s) => step("audit", () => runGrowthAudit(site, [...checks, ...(s?.checks ?? [])]))),
           step("automation", () => runAutomationPlan(site, checks)),
           brandVoice.then(async (voice) => {
             if (voice) await step("contentPack", () => runContentPack(site, voice));

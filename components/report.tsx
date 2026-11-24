@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { SiteCheck } from "@/lib/reader/checks";
 import type { WebsiteSummary } from "@/lib/reader/format";
+import type { PageSpeedResult } from "@/lib/reader/pagespeed";
 import type { AutomationPlan } from "@/lib/schemas/automation-plan";
 import type { ContentPack } from "@/lib/schemas/content-pack";
 import type { BrandVoiceResult } from "@/lib/steps/brand-voice";
@@ -14,11 +15,12 @@ import type { ReportData } from "@/lib/store/reports";
  * and by the saved-report page /r/[id] (everything at once).
  */
 export function Report({ data, showRawData = false }: { data: ReportData; showRawData?: boolean }) {
-  const { site, checks, brandVoice, audit, automation, contentPack } = data;
+  const { site, checks, speed, brandVoice, audit, automation, contentPack } = data;
   return (
     <>
       {audit && site && <Overview audit={audit} domain={site.domain} />}
       {checks && site && <Checks checks={checks} site={site} />}
+      {speed && <Speed speed={speed} />}
       {audit && <Scores audit={audit} />}
       {brandVoice && <BrandVoice voice={brandVoice} />}
       {contentPack && <Content pack={contentPack} />}
@@ -77,6 +79,51 @@ function Checks({ checks, site }: { checks: SiteCheck[]; site: WebsiteSummary })
           </li>
         ))}
       </ul>
+    </Section>
+  );
+}
+
+function Speed({ speed }: { speed: PageSpeedResult }) {
+  const scores: { label: string; value: number | null }[] = [
+    { label: "Performance", value: speed.scores.performance },
+    { label: "SEO", value: speed.scores.seo },
+    { label: "Accessibility", value: speed.scores.accessibility },
+    { label: "Best practices", value: speed.scores.bestPractices },
+  ];
+  const icon = { pass: "✓", warn: "!", fail: "✕" };
+  const color = { pass: "text-emerald-700", warn: "text-amber-600", fail: "text-red-600" };
+  return (
+    <Section
+      title="Speed and mobile"
+      subtitle={`Measured by Google PageSpeed Insights on a simulated mobile phone${
+        speed.field ? `, plus real Chrome users over the last 28 days${speed.field.wholeSite ? " (whole website)" : ""}` : ""
+      }. No AI.`}
+    >
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {scores.map((s) => (
+          <li key={s.label} className="flex flex-col items-center rounded-lg border border-stone-200 bg-white p-3">
+            <span className={`text-3xl font-semibold ${s.value === null ? "text-stone-300" : scoreColor(s.value / 10)}`}>
+              {s.value ?? "–"}
+            </span>
+            <span className="text-xs text-stone-500">{s.label}</span>
+          </li>
+        ))}
+      </ul>
+      {speed.checks.length > 0 && (
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {speed.checks
+            .filter((c) => c.id !== "speed-score" && c.id !== "lighthouse-seo")
+            .map((c) => (
+              <li key={c.id} className="flex gap-3 rounded-lg border border-stone-200 bg-white p-3 text-sm">
+                <span className={`font-bold ${color[c.status]}`}>{icon[c.status]}</span>
+                <span>
+                  <span className="font-medium">{c.label}</span>
+                  <span className="block text-stone-600">{c.detail}</span>
+                </span>
+              </li>
+            ))}
+        </ul>
+      )}
     </Section>
   );
 }

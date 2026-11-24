@@ -17,7 +17,8 @@ ${websiteContent}
 </website>
 
 <automated_checks>
-These were measured by code and are facts. Your scores and issues must agree with them.
+These were measured by code (and by Google PageSpeed, where listed) and are facts. Your scores and issues must agree with them.
+If speed measurements are present, use them when scoring "seo" and "conversion": slow mobile pages lose visitors and rank lower.
 ${checks}
 </automated_checks>
 

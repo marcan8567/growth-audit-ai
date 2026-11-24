@@ -7,17 +7,18 @@ import type { SiteCheck } from "@/lib/reader/checks";
 import type { WebsiteSummary } from "@/lib/reader/format";
 import type { ReportData } from "@/lib/store/reports";
 
-type Status = "idle" | "running" | "done" | "error";
+type Status = "idle" | "running" | "done" | "error" | "skipped";
 
 const STEPS: { id: StepId; label: string }[] = [
   { id: "read", label: "Reading the website and running checks" },
+  { id: "speed", label: "Measuring speed with Google PageSpeed" },
   { id: "brandVoice", label: "Analysing the brand voice" },
   { id: "audit", label: "Scoring the growth audit" },
   { id: "automation", label: "Planning automations" },
   { id: "contentPack", label: "Writing the 14-day content pack" },
 ];
 
-const IDLE: Record<StepId, Status> = { read: "idle", brandVoice: "idle", audit: "idle", automation: "idle", contentPack: "idle" };
+const IDLE: Record<StepId, Status> = { speed: "idle", read: "idle", brandVoice: "idle", audit: "idle", automation: "idle", contentPack: "idle" };
 
 export default function AuditPage() {
   const [url, setUrl] = useState("");
@@ -73,7 +74,7 @@ export default function AuditPage() {
   function handleEvent(event: ProgressEvent) {
     if (event.type === "step") {
       setStatus((s) => ({ ...s, [event.step]: event.status }));
-      if (event.status === "error") setStepErrors((m) => ({ ...m, [event.step]: event.message }));
+      if (event.status === "error" || event.status === "skipped") setStepErrors((m) => ({ ...m, [event.step]: event.message }));
       if (event.status === "done") {
         setTiming((t) => ({ ...t, [event.step]: event.ms }));
         setResults((r) => {
@@ -141,7 +142,9 @@ export default function AuditPage() {
                 <span className="text-stone-400">{(timing[step.id]! / 1000).toFixed(1)}s</span>
               )}
             </span>
-            {stepErrors[step.id] && <span className="ml-6 text-red-700">{stepErrors[step.id]}</span>}
+            {stepErrors[step.id] && (
+              <span className={`ml-6 ${status[step.id] === "skipped" ? "text-stone-400" : "text-red-700"}`}>{stepErrors[step.id]}</span>
+            )}
           </li>
         ))}
       </ol>
@@ -173,6 +176,7 @@ function StatusDot({ status }: { status: Status }) {
     running: "animate-pulse bg-amber-400",
     done: "bg-emerald-500",
     error: "bg-red-500",
+    skipped: "bg-stone-300",
   }[status];
   return <span className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${style}`} />;
 }
