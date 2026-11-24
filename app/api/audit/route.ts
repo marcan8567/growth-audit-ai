@@ -2,10 +2,13 @@ import type { ProgressEvent, StepId } from "@/lib/events";
 import { runSiteChecks } from "@/lib/reader/checks";
 import { summarizeWebsite } from "@/lib/reader/format";
 import { readWebsite } from "@/lib/reader/read-website";
+import { normalizeInputUrl } from "@/lib/reader/url";
 import { runAutomationPlan } from "@/lib/steps/automation-plan";
 import { runBrandVoice } from "@/lib/steps/brand-voice";
 import { runContentPack } from "@/lib/steps/content-pack";
 import { runGrowthAudit } from "@/lib/steps/growth-audit";
+import { checkAccess } from "@/lib/store/rate-limit";
+import { saveReport, type ReportData } from "@/lib/store/reports";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,12 +16,13 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 /**
- * POST { url, accessCode } → a stream of progress events (NDJSON).
+ * POST { url, accessCode? } → a stream of progress events (NDJSON).
  *
  * Pipeline:
  *   1. Read the website + code checks (no AI)
  *   2. In parallel: brand voice, growth audit, automation plan
  *   3. Content pack, as soon as the brand voice is ready (it writes in that voice)
+ *   4. Save the report (Upstash Redis) so it has a shareable link
  *
  * A failed AI step is reported and the others carry on, so one bad answer
  * doesn't throw away the rest of the report.
@@ -32,11 +36,19 @@ export async function POST(request: Request) {
   }
 
   const url = typeof body.url === "string" ? body.url : "";
-  const expectedCode = process.env.ACCESS_CODE;
-  if (expectedCode && body.accessCode !== expectedCode) {
-    return Response.json({ error: "Wrong or missing access code." }, { status: 401 });
+  // Check the address before the rate limit, so a typo doesn't use up one of the visitor's free audits.
+  try {
+    normalizeInputUrl(url);
+  } catch (err) {
+    return Response.json({ error: err instanceof Error ? err.message : "Invalid website address." }, { status: 400 });
   }
-  if (!url.trim()) return Response.json({ error: "Please enter a website address." }, { status: 400 });
+
+  // Access code, or a free audit within the daily limits (see lib/store/rate-limit.ts).
+  const access = await checkAccess(request, body.accessCode);
+  if (!access.allowed) return Response.json({ error: access.error }, { status: access.status });
+
+  // Collected as the steps finish, then saved so the report gets its own link.
+  const report: ReportData = {};
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
@@ -59,6 +71,7 @@ export async function POST(request: Request) {
         const started = Date.now();
         try {
           const data = await run();
+          if (id !== "read") Object.assign(report, { [id]: data });
           send({ type: "step", step: id, status: "done", data, ms: Date.now() - started });
           return data;
         } catch (err) {
@@ -80,7 +93,9 @@ export async function POST(request: Request) {
           return;
         }
         const checks = runSiteChecks(site);
-        send({ type: "step", step: "read", status: "done", data: { site: summarizeWebsite(site), checks }, ms: Date.now() - started });
+        report.site = summarizeWebsite(site);
+        report.checks = checks;
+        send({ type: "step", step: "read", status: "done", data: { site: report.site, checks }, ms: Date.now() - started });
 
         // 2 + 3. The AI steps. The content pack waits only for the brand voice, not for the others.
         const brandVoice = step("brandVoice", () => runBrandVoice(site));
@@ -92,6 +107,16 @@ export async function POST(request: Request) {
             else send({ type: "step", step: "contentPack", status: "error", message: "Skipped, because the brand voice step failed." });
           }),
         ]);
+
+        // 4. Save the report so it gets its own link. Skipped if the visitor left or nothing useful came back.
+        if (!disconnected() && (report.audit || report.brandVoice)) {
+          try {
+            const id = await saveReport(report);
+            if (id) send({ type: "saved", id });
+          } catch (err) {
+            console.error("[audit] saving the report failed:", err); // the report is still on screen
+          }
+        }
 
         send({ type: "done" });
       } finally {

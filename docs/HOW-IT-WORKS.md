@@ -64,6 +64,21 @@ read website + 10 code checks ──┬── brand voice ──── content p
 
 **Talking point:** "I split the work by what each part is good at. Code does facts and maths, the AI does judgement and writing, and every AI answer is validated and fact-checked before it reaches the report."
 
+## 7. Saved reports and rate limits (`lib/store/`)
+
+| Decision | Why |
+| --- | --- |
+| **Upstash Redis** for storage | Serverless functions keep nothing between requests, so reports need an outside store. Upstash works over HTTP, has a free tier and needs no server |
+| **Random 10-character report links** (`/r/ZC9XNQ-AUa`), hidden from search engines, deleted after 6 months | Only people you send a link to can find a report. Redis deletes old ones automatically, so storage never fills up |
+| **Two limits**: 3 free audits per visitor per day, 25 per day for the whole site | The per-visitor limit stops one person using everything up; the site-wide limit caps the AI bill even if the link goes viral. Both are settings (`PUBLIC_AUDITS_PER_VISITOR_PER_DAY`, `PUBLIC_AUDITS_PER_DAY`) |
+| **Access code = no limits** | You can always demo, even when the free quota is used up |
+| **IP addresses are hashed** before counting | The limit works without storing personal data |
+| **The address is checked before the limit** | A typo or a blocked address is refused without using up a free audit |
+| **Separate counters for local, preview and production** | Testing never eats the live site's daily quota |
+| **Everything still works without Redis** | Locally, or if Upstash is down, audits run; reports just aren't saved and only the access code works |
+
+**Talking point:** "Before an interview I run the company's own website through the tool and send them the report link. It shows the product and the thinking at the same time."
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.
@@ -71,4 +86,5 @@ read website + 10 code checks ──┬── brand voice ──── content p
 - Some sites block automated requests. The tool then reports which pages failed instead of guessing.
 - Scores are AI judgements, so running the same site twice can move a category by a point. The code checks underneath don't change.
 - Each audit makes four AI calls and sends the website text with each one. Fine at demo scale; at volume, prompt caching or a shared summary would cut the cost.
-- Reports aren't saved yet, and there's no per-visitor rate limit (planned with Upstash Redis). Until then, the demo is protected by an access code and a monthly spending cap at the AI provider.
+- Visitors are counted by IP address, so people on a shared network (an office, a university) share the 3 free audits, and someone changing networks gets new ones. The site-wide daily cap and the AI provider's monthly spending cap are the real cost protection.
+- The calls-to-action list sometimes includes navigation links styled as buttons (for example "Product"), so the CTA count is a rough signal, not an exact one.

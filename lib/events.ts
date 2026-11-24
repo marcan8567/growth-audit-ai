@@ -10,4 +10,6 @@ export type ProgressEvent =
   | { type: "step"; step: StepId; status: "error"; message: string }
   // Nothing else can run (for example, the website couldn't be read).
   | { type: "error"; step?: StepId; message: string }
+  // The report was saved and can be opened at /r/{id}.
+  | { type: "saved"; id: string }
   | { type: "done" };
