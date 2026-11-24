@@ -1,8 +1,8 @@
 # Growth Audit AI
 
-Enter any company URL and get a brand voice profile, a scored growth audit, a 14-day content pack and an automation plan, all built from the company's own public website.
+Enter any company URL and get a scored growth audit, Google speed data, a brand voice profile, a ready-to-post social media post and an automation plan, all built from the company's own public website. Visitors who want a full content plan are invited to get in touch on LinkedIn.
 
-> Status: complete for now: landing page, website reader, Google speed and mobile data, brand voice, growth audit, content pack, automation plan, saved shareable reports and rate limits.
+> Status: complete for now: landing page, website reader, Google speed and mobile data, brand voice, growth audit, social media post with a LinkedIn call to action, automation plan, saved shareable reports and rate limits.
 >
 > Live: https://growth-audit-ai.vercel.app
 
@@ -14,7 +14,7 @@ Enter any company URL and get a brand voice profile, a scored growth audit, a 14
    - **Brand voice**: tone, audience, positioning, key messages, with supporting quotes.
    - **Growth audit** (waits for the speed data): the AI scores six areas from 0 to 10 and suggests quick wins; code calculates the overall score.
    - **Automation plan**: 4–6 practical marketing automations with trigger, steps, tools and the role of AI.
-3. **14-day content pack** starts as soon as the brand voice is ready, because it writes in that voice.
+3. **Social media post** starts as soon as the brand voice is ready, because it writes in that voice: three content themes and one ready-to-post post. A call to action offers the full content plan via LinkedIn.
 4. **Save**: the finished report is stored in Upstash Redis and gets its own link (`/r/<id>`), kept for 6 months.
 
 Anyone can run 3 free audits a day (25 a day across the whole site). The access code removes the limits.
@@ -51,7 +51,7 @@ lib/
   schemas/                Zod schemas, one per AI step
   steps/                  one file per pipeline step, plus the shared grounding check
   store/                  Upstash Redis: saved reports and rate limits
-  site.ts                 author, links and the sample report shown on the homepage
+  site.ts                 author, links (GitHub, LinkedIn) and the sample report shown on the homepage
 prompts/                  prompts, kept separate so they're easy to improve
 ```
 

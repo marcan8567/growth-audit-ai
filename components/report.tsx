@@ -8,6 +8,7 @@ import type { AutomationPlan } from "@/lib/schemas/automation-plan";
 import type { ContentPack } from "@/lib/schemas/content-pack";
 import type { BrandVoiceResult } from "@/lib/steps/brand-voice";
 import type { GrowthAuditResult } from "@/lib/steps/growth-audit";
+import { SITE } from "@/lib/site";
 import type { ReportData } from "@/lib/store/reports";
 
 /**
@@ -23,7 +24,7 @@ export function Report({ data, showRawData = false }: { data: ReportData; showRa
       {speed && <Speed speed={speed} />}
       {audit && <Scores audit={audit} />}
       {brandVoice && <BrandVoice voice={brandVoice} />}
-      {contentPack && <Content pack={contentPack} />}
+      {contentPack && <Content pack={contentPack} domain={site?.domain} />}
       {automation && <Automations plan={automation} />}
 
       {showRawData && Object.keys(data).length > 0 && (
@@ -221,39 +222,51 @@ function BrandVoice({ voice }: { voice: BrandVoiceResult }) {
   );
 }
 
-function Content({ pack }: { pack: ContentPack }) {
+function Content({ pack, domain }: { pack: ContentPack; domain?: string }) {
+  // Older saved reports have 14 posts; every report now shows one, and the full plan is offered on LinkedIn.
+  const post = pack.posts[0];
+  if (!post) return null;
   return (
-    <Section title="14-day content pack" subtitle={pack.strategy}>
-      <ul className="grid gap-2 sm:grid-cols-3">
-        {pack.pillars.map((p) => (
-          <li key={p.name} className="rounded-lg border border-stone-200 bg-white p-3 text-sm">
-            <span className="font-medium">{p.name}</span>
-            <span className="block text-stone-600">{p.why}</span>
-          </li>
-        ))}
-      </ul>
-      <ol className="flex flex-col gap-3">
-        {pack.posts.map((post) => (
-          <li key={post.day} className="rounded-lg border border-stone-200 bg-white p-4 text-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold">Day {post.day}</span>
-              <Badge>{post.platform}</Badge>
-              <Badge>{post.format}</Badge>
-              <span className="text-stone-400">{post.pillar}</span>
-            </div>
-            <p className="mt-2 font-medium">{post.hook}</p>
-            <p className="mt-1 whitespace-pre-line text-stone-700">{post.body}</p>
-            <p className="mt-2 text-stone-600">
-              <span className="font-medium">CTA: </span>
-              {post.cta}
-            </p>
-            {post.hashtags.length > 0 && (
-              <p className="mt-1 text-emerald-700">{post.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ")}</p>
-            )}
-            <CopyButton text={`${post.hook}\n\n${post.body}\n\n${post.cta}`} label="Copy post" />
-          </li>
-        ))}
-      </ol>
+    <Section title="Social media post" subtitle="One ready-to-post suggestion in the brand's voice, for the channel that suits the company best.">
+      <article className="rounded-lg border border-stone-200 bg-white p-5 text-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge>{post.platform}</Badge>
+          <Badge>{post.format}</Badge>
+          <span className="text-stone-400">{post.pillar}</span>
+        </div>
+        <p className="mt-3 text-base font-semibold">{post.hook}</p>
+        <p className="mt-2 whitespace-pre-line leading-relaxed text-stone-700">{post.body}</p>
+        <p className="mt-3 text-stone-600">
+          <span className="font-medium">Call to action: </span>
+          {post.cta}
+        </p>
+        {post.hashtags.length > 0 && (
+          <p className="mt-1 text-emerald-700">{post.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ")}</p>
+        )}
+        <CopyButton text={`${post.hook}
+
+${post.body}
+
+${post.cta}`} label="Copy post" />
+      </article>
+
+      {SITE.linkedinUrl && (
+        <div className="rounded-xl bg-ink p-6 text-white">
+          <h3 className="text-lg font-semibold">Want a full content plan{domain ? ` for ${domain}` : ""}?</h3>
+          <p className="mt-2 max-w-[60ch] leading-relaxed text-white/80">
+            Two weeks of posts like this one, built on the three themes that suit the company best:{" "}
+            {pack.pillars.map((p) => p.name).join(", ")}. Send me a message and I&apos;ll put it together.
+          </p>
+          <a
+            href={SITE.linkedinUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-block rounded-lg bg-white px-5 py-2.5 font-semibold text-ink hover:bg-marker focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
+          >
+            Message me on LinkedIn
+          </a>
+        </div>
+      )}
     </Section>
   );
 }

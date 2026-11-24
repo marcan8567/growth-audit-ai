@@ -8,7 +8,7 @@ const schibsted = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-schi
 export const metadata: Metadata = {
   title: "Growth Audit AI: a growth audit from any company website",
   description:
-    "Paste a company website and get a scored growth audit, Google speed data, the brand voice, a 14-day content pack and an automation plan in about a minute.",
+    "Paste a company website and get a scored growth audit, Google speed data, the brand voice, a ready-to-post social media post and an automation plan in about a minute.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

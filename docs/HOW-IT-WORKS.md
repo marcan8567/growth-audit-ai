@@ -45,7 +45,7 @@ If the visitor closes the tab, the server stops sending and doesn't start AI ste
 ## 6. The full pipeline (Milestone 3)
 
 ```
-read website + 10 code checks ──┬── brand voice ──── content pack (14 days, in that voice)
+read website + 10 code checks ──┬── brand voice ──── social media post (in that voice)
                                 ├── growth audit (6 scores + quick wins)
                                 └── automation plan
 ```
@@ -54,8 +54,8 @@ read website + 10 code checks ──┬── brand voice ──── content p
 | --- | --- |
 | **Website checks in code** (`lib/reader/checks.ts`): HTTPS, title and meta length, one H1, CTAs, pricing page, blog, socials… | These are facts, not opinions. Code gets them right every time, and the audit prompt tells the AI its scores must agree with them |
 | **The AI scores six fixed categories; code calculates the overall score** (`lib/steps/growth-audit.ts`) | Language models are good at judgement and bad at arithmetic. The categories are fixed in code so every report has the same structure and can be compared |
-| **Three steps in parallel, content pack after brand voice** | The audit and automation plan only need the website, so they run at the same time as brand voice. The content pack needs the brand voice to write in it. A full run takes about a minute instead of two |
-| **Strict schemas with custom rules** (for example: exactly 14 posts covering days 1–14, every post's pillar must be one of the 3 pillars) | A rule the AI breaks becomes a precise retry message ("posts must cover days 1 to 14"), instead of a broken report |
+| **Three steps in parallel, the social media post after brand voice** | The audit and automation plan only need the website, so they run at the same time as brand voice. The post needs the brand voice to write in it. A full run takes about a minute |
+| **Strict schemas with custom rules** (for example: exactly 3 content themes, and the post's theme must be one of them) | A rule the AI breaks becomes a precise retry message ("… is not one of the theme names"), instead of a broken report |
 | **Shared grounding check** (`lib/steps/grounding.ts`) | Brand voice and audit quotes are both verified word for word. On Stripe: 13 of 13 audit quotes verified |
 | **One failed step doesn't kill the report** | Each step reports its own error and the rest still appear |
 | **Retries are logged** (`console.warn` in `run-step.ts`, visible in Vercel → Logs) | Shows which prompts the AI struggles with, so they can be improved |
@@ -102,6 +102,20 @@ read website + 10 code checks ──┬── brand voice ──── content p
 | **One typeface (Schibsted Grotesk), ink navy and one yellow** | A consistent look across the homepage, audit page and shared reports. Green, amber and red appear only as score colours |
 | **The audit page moved from /test to /audit**, with a permanent redirect | "test" looks unfinished on a CV, and old links keep working |
 | **Project details in one file** (`lib/site.ts`) | Name, GitHub link and sample report can be changed without touching the page |
+
+## 10. One free post, then a call to action (lead generation)
+
+The report used to include a 14-day content pack. It now gives **one** ready-to-post social media post, followed by: *"Want a full content plan for {company}? Two weeks of posts like this one, built on these three themes … Message me on LinkedIn."*
+
+| Decision | Why |
+| --- | --- |
+| **Give one good sample, offer the rest** | The classic lead-magnet pattern: the free post proves the quality, the full plan is a reason to get in touch |
+| **Name the company's three content themes in the offer** | Makes the offer concrete and specific to that company, not a generic "contact me" |
+| **Faster and cheaper as a side effect** | Writing 14 posts took 50–90 seconds; one post takes about 13. A full audit dropped from 65–105 seconds to about 55 |
+| **Old reports adapt automatically** | Reports saved with 14 posts now show only the first, with the same call to action |
+| **LinkedIn link in one place** (`lib/site.ts`) | The call to action is hidden if the link is empty |
+
+**Talking point:** "The tool is also my own funnel: every report a stranger runs ends with a reason to message me."
 
 ## Known limits (honest answers if asked)
 
