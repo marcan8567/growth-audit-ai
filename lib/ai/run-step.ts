@@ -41,6 +41,9 @@ export async function runJsonStep<T>({ name, system, user, schema, maxTokens = 3
     }
     if (attempt === 2) throw new Error(`${name}: the AI output failed validation twice. Last problem: ${problem}`);
 
+    // Logged so retries show up in the server logs (Vercel → Logs) and can be used to improve the prompts.
+    console.warn(`[${name}] attempt 1 failed validation, retrying. Problem: ${problem}`);
+
     messages.push(
       { role: "assistant", content: text || "(empty)" },
       {

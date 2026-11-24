@@ -1,0 +1,113 @@
+import type { ProgressEvent, StepId } from "@/lib/events";
+import { runSiteChecks } from "@/lib/reader/checks";
+import { summarizeWebsite } from "@/lib/reader/format";
+import { readWebsite } from "@/lib/reader/read-website";
+import { runAutomationPlan } from "@/lib/steps/automation-plan";
+import { runBrandVoice } from "@/lib/steps/brand-voice";
+import { runContentPack } from "@/lib/steps/content-pack";
+import { runGrowthAudit } from "@/lib/steps/growth-audit";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+// Seconds. A full audit takes about a minute; Vercel's free plan allows up to 300s with Fluid compute.
+export const maxDuration = 120;
+
+/**
+ * POST { url, accessCode } → a stream of progress events (NDJSON).
+ *
+ * Pipeline:
+ *   1. Read the website + code checks (no AI)
+ *   2. In parallel: brand voice, growth audit, automation plan
+ *   3. Content pack, as soon as the brand voice is ready (it writes in that voice)
+ *
+ * A failed AI step is reported and the others carry on, so one bad answer
+ * doesn't throw away the rest of the report.
+ */
+export async function POST(request: Request) {
+  let body: { url?: unknown; accessCode?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Send JSON with a url field." }, { status: 400 });
+  }
+
+  const url = typeof body.url === "string" ? body.url : "";
+  const expectedCode = process.env.ACCESS_CODE;
+  if (expectedCode && body.accessCode !== expectedCode) {
+    return Response.json({ error: "Wrong or missing access code." }, { status: 401 });
+  }
+  if (!url.trim()) return Response.json({ error: "Please enter a website address." }, { status: 400 });
+
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      // If the visitor closes the tab, the stream is gone: stop sending, and don't start new AI steps (they cost money).
+      const disconnected = () => request.signal.aborted;
+      const send = (event: ProgressEvent) => {
+        if (disconnected()) return;
+        try {
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        } catch {
+          // The stream was closed in the meantime; nothing to do.
+        }
+      };
+
+      /** Runs one step, reports running/done/error, and returns its result (or null if it failed or was skipped). */
+      async function step<T>(id: StepId, run: () => Promise<T>): Promise<T | null> {
+        if (disconnected()) return null;
+        send({ type: "step", step: id, status: "running" });
+        const started = Date.now();
+        try {
+          const data = await run();
+          send({ type: "step", step: id, status: "done", data, ms: Date.now() - started });
+          return data;
+        } catch (err) {
+          console.error(`[audit] ${id} step failed:`, err);
+          send({ type: "step", step: id, status: "error", message: err instanceof Error ? err.message : "Something went wrong." });
+          return null;
+        }
+      }
+
+      try {
+        // 1. Read the website. Nothing else can run without it, so a failure here ends the audit.
+        send({ type: "step", step: "read", status: "running" });
+        const started = Date.now();
+        let site;
+        try {
+          site = await readWebsite(url);
+        } catch (err) {
+          send({ type: "error", step: "read", message: err instanceof Error ? err.message : "Couldn't read the website." });
+          return;
+        }
+        const checks = runSiteChecks(site);
+        send({ type: "step", step: "read", status: "done", data: { site: summarizeWebsite(site), checks }, ms: Date.now() - started });
+
+        // 2 + 3. The AI steps. The content pack waits only for the brand voice, not for the others.
+        const brandVoice = step("brandVoice", () => runBrandVoice(site));
+        await Promise.all([
+          step("audit", () => runGrowthAudit(site, checks)),
+          step("automation", () => runAutomationPlan(site, checks)),
+          brandVoice.then(async (voice) => {
+            if (voice) await step("contentPack", () => runContentPack(site, voice));
+            else send({ type: "step", step: "contentPack", status: "error", message: "Skipped, because the brand voice step failed." });
+          }),
+        ]);
+
+        send({ type: "done" });
+      } finally {
+        try {
+          controller.close();
+        } catch {
+          // Already closed because the visitor left.
+        }
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+}

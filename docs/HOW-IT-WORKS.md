@@ -28,11 +28,13 @@ Short explanations of each part, and the decision behind it, in the words you'd 
 
 **Talking point:** "AI output is treated as untrusted input. It gets validated like any other external data, and its claims get checked against the source."
 
-## 4. Streaming progress (`app/api/brand-voice-test/route.ts`)
+## 4. Streaming progress (`app/api/audit/route.ts`)
 
-The server sends one JSON line per event (`running`, `done`, `error`) as each step happens. The page reads the stream and lights up each step as it finishes.
+The server sends one JSON line per event (`running`, `done`, `error`) as each step happens. The page reads the stream and shows each section of the report as soon as its step finishes.
 
-**Why:** a full audit takes 1 to 2 minutes. Showing live progress makes the wait feel short. It also keeps the connection active instead of idle.
+**Why:** a full audit takes about a minute. Showing live progress makes the wait feel short. It also keeps the connection active instead of idle.
+
+If the visitor closes the tab, the server stops sending and doesn't start AI steps that haven't begun yet, so nobody pays for a report no one will read.
 
 ## 5. Swappable AI provider (`lib/ai/complete.ts`)
 
@@ -40,8 +42,33 @@ The server sends one JSON line per event (`running`, `done`, `error`) as each st
 
 **Talking point:** "The pipeline doesn't trust any model's output, so swapping the model is a one-line config change. The same checks catch a bad answer from either provider."
 
+## 6. The full pipeline (Milestone 3)
+
+```
+read website + 10 code checks ──┬── brand voice ──── content pack (14 days, in that voice)
+                                ├── growth audit (6 scores + quick wins)
+                                └── automation plan
+```
+
+| Decision | Why |
+| --- | --- |
+| **Website checks in code** (`lib/reader/checks.ts`): HTTPS, title and meta length, one H1, CTAs, pricing page, blog, socials… | These are facts, not opinions. Code gets them right every time, and the audit prompt tells the AI its scores must agree with them |
+| **The AI scores six fixed categories; code calculates the overall score** (`lib/steps/growth-audit.ts`) | Language models are good at judgement and bad at arithmetic. The categories are fixed in code so every report has the same structure and can be compared |
+| **Three steps in parallel, content pack after brand voice** | The audit and automation plan only need the website, so they run at the same time as brand voice. The content pack needs the brand voice to write in it. A full run takes about a minute instead of two |
+| **Strict schemas with custom rules** (for example: exactly 14 posts covering days 1–14, every post's pillar must be one of the 3 pillars) | A rule the AI breaks becomes a precise retry message ("posts must cover days 1 to 14"), instead of a broken report |
+| **Shared grounding check** (`lib/steps/grounding.ts`) | Brand voice and audit quotes are both verified word for word. On Stripe: 13 of 13 audit quotes verified |
+| **One failed step doesn't kill the report** | Each step reports its own error and the rest still appear |
+| **Retries are logged** (`console.warn` in `run-step.ts`, visible in Vercel → Logs) | Shows which prompts the AI struggles with, so they can be improved |
+
+**Results on real sites:** Stripe scored 90/100 (Excellent) and Basecamp 62/100 (Average). Basecamp lost points for a very short homepage title, no linked social profiles and no blog in its navigation, which the code checks had also flagged.
+
+**Talking point:** "I split the work by what each part is good at. Code does facts and maths, the AI does judgement and writing, and every AI answer is validated and fact-checked before it reaches the report."
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.
 - The private-address check looks at hostnames only and doesn't resolve DNS. That's fine for a demo, but a production system would check the resolved IP too.
 - Some sites block automated requests. The tool then reports which pages failed instead of guessing.
+- Scores are AI judgements, so running the same site twice can move a category by a point. The code checks underneath don't change.
+- Each audit makes four AI calls and sends the website text with each one. Fine at demo scale; at volume, prompt caching or a shared summary would cut the cost.
+- Reports aren't saved yet, and there's no per-visitor rate limit (planned with Upstash Redis). Until then, the demo is protected by an access code and a monthly spending cap at the AI provider.

@@ -2,19 +2,22 @@
 
 Enter any company URL and get a brand voice profile, a scored growth audit, a 14-day content pack and an automation plan, all built from the company's own public website.
 
-> Status: Milestones 1–2 done (website reader + brand voice). Audit, content pack, automation plan and the report page are next.
+> Status: Milestones 1–3 done (website reader, brand voice, growth audit, content pack, automation plan, report page). Next: saved, shareable reports and per-visitor rate limiting (Upstash Redis), then a proper landing page.
 
 ## How it works
 
-1. **Read website**: fetches the homepage plus up to 4 key pages (about, pricing, product, blog), then extracts the title, meta description, headings, calls to action, social links and clean text. This is plain code, with no AI.
-2. **Brand voice**: Claude turns the website text into a structured profile covering tone, audience, positioning, key messages and supporting quotes.
-3. **Growth audit, content pack, automation plan**: these run in parallel after step 2 (coming next).
+1. **Read website + checks**: fetches the homepage plus up to 4 key pages (about, pricing, product, blog) and extracts the title, meta description, headings, calls to action, social links and clean text. Ten website checks (HTTPS, title length, meta description, one H1, CTAs, pricing page, blog, social links…) are then measured in code. No AI in this step.
+2. **Brand voice, growth audit, automation plan** run in parallel:
+   - **Brand voice**: tone, audience, positioning, key messages, with supporting quotes.
+   - **Growth audit**: the AI scores six areas from 0 to 10 and suggests quick wins; code calculates the overall score.
+   - **Automation plan**: 4–6 practical marketing automations with trigger, steps, tools and the role of AI.
+3. **14-day content pack** starts as soon as the brand voice is ready, because it writes in that voice.
 
-Every AI answer must match a Zod schema. If it doesn't, Claude is told the exact problem and asked once more. A grounding check then confirms that each quote really appears on the website.
+Every AI answer must match a Zod schema. If it doesn't, the AI is told the exact problem and asked once more. A grounding check then confirms that each quote really appears on the website. If one step fails, the rest of the report still appears.
 
 ## Tech stack
 
-Next.js (App Router, TypeScript) · Tailwind CSS · Anthropic TypeScript SDK (Claude) or Google Gen AI SDK (Gemini), switchable with `AI_PROVIDER` · Zod · Cheerio · Upstash Redis · Vercel
+Next.js (App Router, TypeScript) · Tailwind CSS · Anthropic TypeScript SDK (Claude) or Google Gen AI SDK (Gemini), switchable with `AI_PROVIDER` · Zod · Cheerio · Vercel
 
 ## Run it locally
 
@@ -30,14 +33,14 @@ Open http://localhost:3000/test.
 
 ```
 app/
-  api/brand-voice-test/route.ts   streams progress events (NDJSON) to the page
-  test/page.tsx                   test page: URL in, live steps, JSON out
+  api/audit/route.ts      runs the pipeline and streams progress events (NDJSON) to the page
+  test/page.tsx           report page: URL in, live steps, full report out
 lib/
-  reader/                         website reader: URL safety, fetch, extract, key pages
-  ai/                             provider switch (Claude/Gemini) + runJsonStep (validate, retry once)
-  schemas/                        Zod schemas, one per AI step
-  steps/                          one file per pipeline step
-prompts/                          prompts, kept separate so they're easy to improve
+  reader/                 website reader (URL safety, fetch, extract, key pages) + code checks
+  ai/                     provider switch (Claude/Gemini) + runJsonStep (validate, retry once)
+  schemas/                Zod schemas, one per AI step
+  steps/                  one file per pipeline step, plus the shared grounding check
+prompts/                  prompts, kept separate so they're easy to improve
 ```
 
 ## Privacy

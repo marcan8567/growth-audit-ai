@@ -21,6 +21,10 @@ const SOCIAL_PLATFORMS: { platform: string; host: RegExp }[] = [
 const CTA_WORDS =
   /\b(get started|start|sign ?up|join|book|demo|contact|talk to|try|free trial|buy|shop|order|subscribe|download|request|schedule|apply|get a quote|learn more|see pricing)\b/i;
 
+// Buttons that are styled like CTAs but aren't marketing: cookie banners, menus, logins, dialogs.
+const NOT_A_CTA =
+  /^(no,? thanks|yes,? (that['’]?s fine|please|i agree)|ok(ay)?|accept( all)?( cookies)?|reject( all)?|decline|allow( all)?( cookies)?|agree|i agree|got it|close|dismiss|cancel|manage (cookies|preferences|settings)|cookie settings|preferences|settings|menu|search|log ?in|sign ?in|have an account\?? sign in\.?|skip to (main )?content)$/i;
+
 export interface LinkInfo {
   url: string;
   text: string;
@@ -95,7 +99,7 @@ export function extractPage(html: string, pageUrl: string, kind: PageKind): Extr
     const node = $(el);
     const text = clean(node.is("input") ? node.attr("value") : node.text());
     const looksLikeButton = /btn|button|cta/i.test(node.attr("class") ?? "") || node.is("button");
-    if (text.length < 2 || text.length > 40) return;
+    if (text.length < 2 || text.length > 40 || NOT_A_CTA.test(text)) return;
     if ((CTA_WORDS.test(text) || looksLikeButton) && !ctas.includes(text)) ctas.push(text);
   });
 

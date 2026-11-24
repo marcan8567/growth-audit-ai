@@ -35,6 +35,11 @@ export function getProvider(): Provider {
   throw new Error(`AI_PROVIDER must be "anthropic" or "gemini" (got "${value}").`);
 }
 
+// Current Claude and Gemini models "think" before answering, and those thinking tokens
+// count towards the output limit, so the limit is raised to leave room for the actual JSON.
+// You only pay for tokens actually used, so a higher limit costs nothing by itself.
+const THINKING_HEADROOM = 6_000;
+
 export async function complete(request: CompletionRequest): Promise<CompletionResult> {
   return getProvider() === "gemini" ? completeWithGemini(request) : completeWithAnthropic(request);
 }
@@ -42,7 +47,7 @@ export async function complete(request: CompletionRequest): Promise<CompletionRe
 async function completeWithAnthropic({ system, messages, maxTokens }: CompletionRequest): Promise<CompletionResult> {
   const response = await getClient().messages.create({
     model: getModel(),
-    max_tokens: maxTokens,
+    max_tokens: maxTokens + THINKING_HEADROOM,
     system,
     messages,
   });
@@ -51,10 +56,6 @@ async function completeWithAnthropic({ system, messages, maxTokens }: Completion
     truncated: response.stop_reason === "max_tokens",
   };
 }
-
-// Gemini models "think" before answering, and those thinking tokens count towards
-// the output limit, so the limit is raised to leave room for the actual JSON.
-const GEMINI_THINKING_HEADROOM = 6_000;
 
 let gemini: GoogleGenAI | null = null;
 
@@ -69,7 +70,7 @@ async function completeWithGemini({ system, messages, maxTokens }: CompletionReq
     contents: messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
     config: {
       systemInstruction: system,
-      maxOutputTokens: maxTokens + GEMINI_THINKING_HEADROOM,
+      maxOutputTokens: maxTokens + THINKING_HEADROOM,
       responseMimeType: "application/json", // asks Gemini for raw JSON, no code fences
     },
   });

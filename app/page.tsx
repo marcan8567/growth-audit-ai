@@ -16,7 +16,7 @@ export default function Home() {
         href="/test"
         className="w-fit rounded-lg bg-stone-900 px-5 py-3 font-medium text-white hover:bg-stone-700"
       >
-        Open the brand voice test page
+        Run a growth audit
       </Link>
     </main>
   );
