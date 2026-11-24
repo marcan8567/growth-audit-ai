@@ -1,6 +1,6 @@
 /** Details about the project shown on the homepage. Change them here. */
 export const SITE = {
-  author: "Marc Zene",
+  author: "Marc Cantacuzene",
   repoUrl: "https://github.com/marcan8567/growth-audit-ai",
   docsUrl: "https://github.com/marcan8567/growth-audit-ai/blob/main/docs/HOW-IT-WORKS.md",
   /** Where visitors ask for the full content plan. The call to action is hidden while this is empty. */
