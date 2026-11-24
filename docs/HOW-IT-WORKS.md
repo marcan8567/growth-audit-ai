@@ -177,6 +177,21 @@ Visitors see the first quick win in full. The others appear as blurred cards beh
 
 **Talking point:** "The report gives real value for free and gates only the part a company would pay for: the prioritised fix list and help implementing it."
 
+## 15. The report layout (`components/report.tsx`)
+
+The report reads like a consultant's deliverable: the overview first, the detail further down.
+
+| Part | Why |
+| --- | --- |
+| **Cover**: company logo and name, score ring, grade, date, Share button, summary, and the biggest opportunity marked in highlighter | The first screen answers "how are we doing and what should we do first?", and it matches the homepage |
+| **Sticky section menu** that highlights where you are | The report is long; readers can jump straight to what they care about |
+| **Scores at a glance** (six tiles), then **quick wins** | The most actionable parts come right after the overview |
+| **Checks summarised** ("10 passed, nothing to fix"), problems listed first, passed checks as small chips | Readers see what needs fixing without wading through what already works |
+| **Speed as rings**, like Google's own PageSpeed report | Marketers already know how to read them |
+| **Automations as a flow**: Trigger → steps → Result | Shows how the workflow runs, not just a list of words |
+| **"Why each score" folds open per area** | Detail and quotes stay available without crowding the page |
+| **Raw data only for the owner** | Visitors see a clean report; the JSON is a debugging tool |
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.

@@ -184,7 +184,8 @@ export default function AuditPage() {
         </div>
       )}
 
-      <Report data={results} showRawData />
+      {/* Raw data only for the owner (an audit only runs with a code if the code is right). */}
+      <Report data={results} showRawData={Boolean(accessCode)} shareUrl={shareUrl} />
     </main>
   );
 }

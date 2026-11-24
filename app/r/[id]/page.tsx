@@ -26,30 +26,24 @@ export default async function SavedReportPage({ params }: Props) {
   const report = await loadReport((await params).id);
   if (!report) notFound();
 
-  const created = new Date(report.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 py-12">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <Link href="/" className="text-lg font-bold tracking-tight text-ink hover:underline">
-            Growth Audit AI
-          </Link>
-          <h1 className="mt-1 text-3xl font-semibold">Growth audit: {report.site?.domain ?? "website"}</h1>
-          <p className="mt-1 text-sm text-stone-500">
-            Created {created} from the public website{report.site ? ` (${report.site.finalUrl})` : ""}.
-          </p>
-        </div>
+    <main className="mx-auto flex max-w-4xl flex-col gap-8 px-6 pb-20 pt-6">
+      <header className="flex items-center justify-between gap-4">
+        <Link href="/" className="whitespace-nowrap text-lg font-bold tracking-tight text-ink hover:underline">
+          Growth Audit AI
+        </Link>
         <Link
           href="/audit"
-          className="w-fit shrink-0 rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700"
+          className="shrink-0 rounded-lg bg-ink px-3 py-2 text-xs font-semibold text-white hover:bg-ink/85 sm:px-4 sm:text-sm"
         >
           Audit another website
         </Link>
       </header>
+      {/* The cover inside the report shows the company, score and date; this heading is for screen readers. */}
+      <h1 className="sr-only">Growth audit of {report.site?.domain ?? "a website"}</h1>
 
       {/* Visitors' reports hide all but the first quick win; the owner's showcase audits are shown in full. */}
-      <Report data={report.owner ? report : redactReportForVisitor(report)} />
+      <Report data={report.owner ? report : redactReportForVisitor(report)} createdAt={report.createdAt} shareUrl="current" />
     </main>
   );
 }

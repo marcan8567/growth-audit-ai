@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { SiteCheck } from "@/lib/reader/checks";
 import type { WebsiteSummary } from "@/lib/reader/format";
 import type { PageSpeedResult } from "@/lib/reader/pagespeed";
@@ -15,174 +15,246 @@ import type { ReportData } from "@/lib/store/reports";
 /**
  * The full report. Used by the live audit page (sections appear as steps finish)
  * and by the saved-report page /r/[id] (everything at once).
+ *
+ * Order: cover, section menu, scores at a glance, quick wins, checks, speed, score details,
+ * brand voice, posts, automation plan. The overview comes first; the detail is further down.
  */
-export function Report({ data, showRawData = false }: { data: ReportData; showRawData?: boolean }) {
+export function Report({
+  data,
+  showRawData = false,
+  createdAt,
+  shareUrl,
+}: {
+  data: ReportData;
+  showRawData?: boolean;
+  createdAt?: string;
+  /** The link the Share button copies; "current" copies the page's own address. */
+  shareUrl?: string | null;
+}) {
   const { site, checks, speed, brandVoice, audit, automation, contentPack } = data;
+
+  const sections = [
+    audit && site && { id: "overview", label: "Overview" },
+    audit && { id: "scores", label: "Scores" },
+    audit && { id: "quick-wins", label: "Quick wins" },
+    checks && { id: "checks", label: "Checks" },
+    speed && { id: "speed", label: "Speed" },
+    brandVoice && { id: "brand-voice", label: "Brand voice" },
+    contentPack && { id: "posts", label: "Posts" },
+    automation && { id: "automations", label: "Automations" },
+  ].filter(Boolean) as { id: string; label: string }[];
+
+  if (!sections.length && !showRawData) return null;
+
   return (
-    <>
-      {audit && site && <Overview audit={audit} domain={site.domain} />}
+    <div className="flex flex-col gap-14 text-ink">
+      {audit && site && <Cover audit={audit} site={site} createdAt={createdAt} shareUrl={shareUrl} />}
+      {sections.length > 2 && <SectionMenu sections={sections} />}
+      {audit && <ScoreGrid audit={audit} />}
+      {audit && <QuickWins audit={audit} domain={site?.domain} />}
       {checks && site && <Checks checks={checks} site={site} />}
       {speed && <Speed speed={speed} />}
-      {audit && <Scores audit={audit} domain={site?.domain} />}
+      {audit && <ScoreDetails audit={audit} />}
       {brandVoice && <BrandVoice voice={brandVoice} />}
-      {contentPack && <Content pack={contentPack} site={site} />}
+      {contentPack && <Posts pack={contentPack} site={site} />}
       {automation && <Automations plan={automation} />}
 
       {showRawData && Object.keys(data).length > 0 && (
-        <Section title="Raw data" subtitle="The exact JSON each step returned, for checking and debugging.">
+        <Section id="raw" title="Raw data" subtitle="The exact JSON each step returned. Only you see this.">
           {Object.entries(data).map(([key, value]) => (
             <JsonBlock key={key} label={key} value={value} />
           ))}
         </Section>
       )}
-    </>
+    </div>
   );
 }
 
-/* ---------- Report sections ---------- */
+/* ---------- Cover ---------- */
 
-function Overview({ audit, domain }: { audit: GrowthAuditResult; domain: string }) {
+function Cover({
+  audit,
+  site,
+  createdAt,
+  shareUrl,
+}: {
+  audit: GrowthAuditResult;
+  site: WebsiteSummary;
+  createdAt?: string;
+  shareUrl?: string | null;
+}) {
+  const brand = site.brand ?? { name: nameFromDomain(site.domain), iconUrl: null, color: null };
+  const date = new Date(createdAt ?? Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-6 sm:flex-row sm:items-center sm:gap-8">
-      <div className="flex shrink-0 flex-col items-center">
-        <span className={`text-5xl font-semibold ${scoreColor(audit.overallScore / 10)}`}>{audit.overallScore}</span>
-        <span className="text-sm text-stone-500">/ 100 · {audit.grade}</span>
+    <section id="overview" className="scroll-mt-24 rounded-2xl border border-ink/10 bg-white p-6 shadow-[0_20px_40px_-28px_rgba(23,32,51,0.35)] sm:p-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <CompanyLogo iconUrl={brand.iconUrl} name={brand.name} size={48} />
+          <div>
+            <p className="text-2xl font-bold leading-tight tracking-tight">{brand.name}</p>
+            <p className="text-sm text-ink-soft">
+              Growth audit of {site.domain}, {date}
+            </p>
+          </div>
+        </div>
+        {shareUrl && (
+          <CopyButton
+            text={shareUrl === "current" ? (typeof window === "undefined" ? "" : window.location.href) : shareUrl}
+            label="Share report"
+            className="rounded-lg border-2 border-ink px-4 py-2 text-sm font-semibold hover:bg-ink hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
+            copiedLabel="Link copied"
+          />
+        )}
       </div>
-      <div className="flex flex-col gap-2">
-        <h2 className="text-xl font-semibold">{domain}</h2>
-        <p className="text-stone-700">{audit.summary}</p>
-        <p className="text-stone-700">
-          <span className="font-medium">Biggest opportunity: </span>
-          {audit.biggestOpportunity}
-        </p>
+
+      <div className="mt-8 grid items-center gap-8 sm:grid-cols-[auto_1fr]">
+        <div className="flex flex-col items-center">
+          <ScoreRing value={audit.overallScore} size={140} stroke={12}>
+            <span className={`text-5xl font-bold tracking-tight ${scoreText(audit.overallScore / 10)}`}>{audit.overallScore}</span>
+            <span className="text-xs text-ink-soft">out of 100</span>
+          </ScoreRing>
+          <p className="mt-2 font-semibold">{audit.grade}</p>
+        </div>
+        <div>
+          <p className="max-w-[62ch] leading-relaxed">{audit.summary}</p>
+          <p className="mt-4 text-sm font-semibold">Biggest opportunity</p>
+          <p className="mt-1 max-w-[62ch] leading-relaxed">
+            <span className="marker">{audit.biggestOpportunity}</span>
+          </p>
+        </div>
       </div>
     </section>
   );
 }
 
-function Checks({ checks, site }: { checks: SiteCheck[]; site: WebsiteSummary }) {
-  const icon = { pass: "✓", warn: "!", fail: "✕" };
-  const color = { pass: "text-emerald-700", warn: "text-amber-600", fail: "text-red-600" };
+/* ---------- Sticky section menu ---------- */
+
+function SectionMenu({ sections }: { sections: { id: string; label: string }[] }) {
+  const [active, setActive] = useState(sections[0]?.id);
+
+  // Highlight the section currently in view.
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActive(visible[0].target.id);
+      },
+      { rootMargin: "-80px 0px -60% 0px" },
+    );
+    for (const s of sections) {
+      const el = document.getElementById(s.id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, [sections]);
+
   return (
-    <Section
-      title="Website checks"
-      subtitle={`Measured by code, no AI. ${site.pages.length} page${site.pages.length === 1 ? "" : "s"} read${
-        site.failedPages.length ? `, ${site.failedPages.length} failed` : ""
-      }: ${site.pages.map((p) => p.kind).join(", ")}.`}
+    <nav
+      aria-label="Report sections"
+      className="sticky top-0 z-20 -mx-6 -my-8 border-b border-ink/10 bg-white/90 px-6 backdrop-blur supports-[backdrop-filter]:bg-white/75"
     >
-      <ul className="grid gap-2 sm:grid-cols-2">
-        {checks.map((c) => (
-          <li key={c.id} className="flex gap-3 rounded-lg border border-stone-200 bg-white p-3 text-sm">
-            <span className={`font-bold ${color[c.status]}`}>{icon[c.status]}</span>
-            <span>
-              <span className="font-medium">{c.label}</span>
-              <span className="block text-stone-600">{c.detail}</span>
-            </span>
+      <ul className="flex gap-1 overflow-x-auto py-2 text-sm [scrollbar-width:none]">
+        {sections.map((s) => (
+          <li key={s.id} className="shrink-0">
+            <a
+              href={`#${s.id}`}
+              className={`block rounded-full px-3 py-1.5 font-medium ${
+                active === s.id ? "bg-ink text-white" : "text-ink-soft hover:bg-mist hover:text-ink"
+              }`}
+            >
+              {s.label}
+            </a>
           </li>
         ))}
       </ul>
-    </Section>
+    </nav>
   );
 }
 
-function Speed({ speed }: { speed: PageSpeedResult }) {
-  const scores: { label: string; value: number | null }[] = [
-    { label: "Performance", value: speed.scores.performance },
-    { label: "SEO", value: speed.scores.seo },
-    { label: "Accessibility", value: speed.scores.accessibility },
-    { label: "Best practices", value: speed.scores.bestPractices },
-  ];
-  const icon = { pass: "✓", warn: "!", fail: "✕" };
-  const color = { pass: "text-emerald-700", warn: "text-amber-600", fail: "text-red-600" };
-  return (
-    <Section
-      title="Speed and mobile"
-      subtitle={`Measured by Google PageSpeed Insights on a simulated mobile phone${
-        speed.field ? `, plus real Chrome users over the last 28 days${speed.field.wholeSite ? " (whole website)" : ""}` : ""
-      }. No AI.`}
-    >
-      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {scores.map((s) => (
-          <li key={s.label} className="flex flex-col items-center rounded-lg border border-stone-200 bg-white p-3">
-            <span className={`text-3xl font-semibold ${s.value === null ? "text-stone-300" : scoreColor(s.value / 10)}`}>
-              {s.value ?? "–"}
-            </span>
-            <span className="text-xs text-stone-500">{s.label}</span>
-          </li>
-        ))}
-      </ul>
-      {speed.checks.length > 0 && (
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {speed.checks
-            .filter((c) => c.id !== "speed-score" && c.id !== "lighthouse-seo")
-            .map((c) => (
-              <li key={c.id} className="flex gap-3 rounded-lg border border-stone-200 bg-white p-3 text-sm">
-                <span className={`font-bold ${color[c.status]}`}>{icon[c.status]}</span>
-                <span>
-                  <span className="font-medium">{c.label}</span>
-                  <span className="block text-stone-600">{c.detail}</span>
-                </span>
-              </li>
-            ))}
-        </ul>
-      )}
-    </Section>
-  );
-}
+/* ---------- Scores ---------- */
 
-function Scores({ audit, domain }: { audit: GrowthAuditResult; domain?: string }) {
+function ScoreGrid({ audit }: { audit: GrowthAuditResult }) {
   return (
-    <Section
-      title="Growth audit"
-      subtitle={`The AI scores each area; the overall score is calculated by code. Grounding check: ${audit.grounding.verifiedQuotes} of ${audit.grounding.totalQuotes} quotes found word for word on the website.`}
-    >
-      <ul className="flex flex-col gap-3">
+    <Section id="scores" title="Scores at a glance" subtitle="Each area scored from 0 to 10 by the AI; the overall score is calculated by code.">
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {audit.categories.map((c) => (
-          <li key={c.id} className="rounded-lg border border-stone-200 bg-white p-4">
-            <div className="flex items-center justify-between gap-4">
-              <span className="font-medium">{c.label}</span>
-              <span className={`font-semibold ${scoreColor(c.score)}`}>{c.score}/10</span>
+          <li key={c.id} className="rounded-xl border border-ink/10 bg-white p-4">
+            <p className="text-sm leading-snug text-ink-soft">{c.label}</p>
+            <p className="mt-1">
+              <span className={`text-3xl font-bold tracking-tight ${scoreText(c.score)}`}>{c.score}</span>
+              <span className="text-ink-soft">/10</span>
+            </p>
+            <div className="mt-2 h-1.5 rounded-full bg-mist">
+              <div className={`h-1.5 rounded-full ${scoreBar(c.score)}`} style={{ width: `${c.score * 10}%` }} />
             </div>
-            <div className="mt-2 h-2 rounded-full bg-stone-100">
-              <div className={`h-2 rounded-full ${barColor(c.score)}`} style={{ width: `${c.score * 10}%` }} />
-            </div>
-            <p className="mt-2 text-sm text-stone-700">{c.verdict}</p>
-            <details className="mt-2 text-sm">
-              <summary className="cursor-pointer text-stone-500">Details</summary>
-              <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                <List title="Strengths" items={c.strengths} />
-                <List title="Issues" items={c.issues} />
-              </div>
-              {c.evidence.length > 0 && (
-                <ul className="mt-3 flex flex-col gap-1">
-                  {c.evidence.map((e, i) => (
-                    <li key={i} className="text-stone-600">
-                      <span className={e.verified ? "text-emerald-700" : "text-amber-600"}>
-                        {e.verified ? "✓ verified" : "! not found on site"}
-                      </span>{" "}
-                      “{e.quote}”
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </details>
           </li>
         ))}
       </ul>
+    </Section>
+  );
+}
 
-      <h3 className="mt-4 text-lg font-semibold">Quick wins</h3>
+function ScoreDetails({ audit }: { audit: GrowthAuditResult }) {
+  return (
+    <Section
+      id="details"
+      title="Why each score"
+      subtitle={`Strengths, issues and the quotes behind them. ${audit.grounding.verifiedQuotes} of ${audit.grounding.totalQuotes} quotes were found word for word on the website.`}
+    >
+      <div className="divide-y divide-ink/10 rounded-xl border border-ink/10 bg-white">
+        {audit.categories.map((c) => (
+          <details key={c.id} className="group px-5 py-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+              <span>
+                <span className="font-semibold">{c.label}</span>
+                <span className="mt-0.5 block text-sm text-ink-soft">{c.verdict}</span>
+              </span>
+              <span className="flex shrink-0 items-center gap-3">
+                <span className={`font-bold ${scoreText(c.score)}`}>{c.score}/10</span>
+                <Chevron />
+              </span>
+            </summary>
+            <div className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+              <List title="Strengths" items={c.strengths} />
+              <List title="Issues" items={c.issues} />
+            </div>
+            {c.evidence.length > 0 && (
+              <ul className="mt-4 flex flex-col gap-2 text-sm">
+                {c.evidence.map((e, i) => (
+                  <li key={i} className="border-l-2 border-ink/15 pl-3 text-ink-soft">
+                    <span className="italic">“{e.quote}”</span>{" "}
+                    <span className={e.verified ? "text-emerald-700" : "text-amber-600"}>
+                      {e.verified ? "verified on the site" : "not found on the site"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </details>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ---------- Quick wins ---------- */
+
+function QuickWins({ audit, domain }: { audit: GrowthAuditResult; domain?: string }) {
+  return (
+    <Section id="quick-wins" title="Quick wins" subtitle="The changes most likely to grow leads and revenue, best first.">
       <ol className="flex flex-col gap-3">
         {audit.quickWins.map((w, i) => (
-          <li key={i} className="rounded-lg border border-stone-200 bg-white p-4 text-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">
-                {i + 1}. {w.title}
-              </span>
-              <Badge>Impact: {w.impact}</Badge>
-              <Badge>Effort: {w.effort}</Badge>
+          <li key={i} className="flex gap-4 rounded-xl border border-ink/10 bg-white p-5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">{i + 1}</span>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold">{w.title}</span>
+                <Badge tone={levelTone(w.impact, "impact")}>Impact: {w.impact}</Badge>
+                <Badge tone={levelTone(w.effort, "effort")}>Effort: {w.effort}</Badge>
+              </div>
+              <p className="mt-1.5 leading-relaxed">{w.action}</p>
+              <p className="mt-1 text-sm text-ink-soft">{w.why}</p>
             </div>
-            <p className="mt-1 text-stone-700">{w.action}</p>
-            <p className="mt-1 text-stone-500">{w.why}</p>
           </li>
         ))}
         {audit.hiddenQuickWins ? <HiddenQuickWins count={audit.hiddenQuickWins} start={audit.quickWins.length + 1} domain={domain} /> : null}
@@ -200,77 +272,150 @@ function HiddenQuickWins({ count, start, domain }: { count: number; start: numbe
     <li className="relative">
       <div aria-hidden="true" className="pointer-events-none flex select-none flex-col gap-3 blur-[5px]">
         {Array.from({ length: count }, (_, i) => (
-          <div key={i} className="rounded-lg border border-stone-200 bg-white p-4 text-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">
-                {start + i}. Placeholder fix title for this website
-              </span>
-              <Badge>Impact: high</Badge>
-              <Badge>Effort: low</Badge>
+          <div key={i} className="flex gap-4 rounded-xl border border-ink/10 bg-white p-5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">{start + i}</span>
+            <div>
+              <span className="font-semibold">Placeholder fix title for this website</span>
+              <p className="mt-1.5">What to change, specific to this company, and where on the website.</p>
+              <p className="mt-1 text-sm text-ink-soft">The effect this is expected to have on growth.</p>
             </div>
-            <p className="mt-1 text-stone-700">What to change, specific to this company, and where on the website.</p>
-            <p className="mt-1 text-stone-500">The effect this is expected to have on growth.</p>
           </div>
         ))}
       </div>
       <div className="absolute inset-0 flex items-center justify-center p-3">
         <div className="max-w-md rounded-xl bg-ink p-5 text-center text-white shadow-lg">
           <p className="font-semibold">
-            {count} more {count === 1 ? "fix" : "fixes"}{domain ? ` for ${domain}` : ""}, ranked by impact
+            {count} more {count === 1 ? "fix" : "fixes"}
+            {domain ? ` for ${domain}` : ""}, ranked by impact
           </p>
           <p className="mt-1.5 text-sm leading-relaxed text-white/80">
             Message me on LinkedIn and I&apos;ll send you the full list, and help you put the fixes in place.
           </p>
-          {SITE.linkedinUrl && (
-            <a
-              href={SITE.linkedinUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 inline-block rounded-lg bg-white px-4 py-2 text-sm font-semibold text-ink hover:bg-marker focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
-            >
-              Message me on LinkedIn
-            </a>
-          )}
+          {SITE.linkedinUrl && <LinkedInButton className="mt-3 px-4 py-2 text-sm" />}
         </div>
       </div>
     </li>
   );
 }
 
+/* ---------- Checks ---------- */
+
+function Checks({ checks, site }: { checks: SiteCheck[]; site: WebsiteSummary }) {
+  const problems = checks.filter((c) => c.status !== "pass").sort((a, b) => (a.status === "fail" ? -1 : 1) - (b.status === "fail" ? -1 : 1));
+  const passed = checks.filter((c) => c.status === "pass");
+  return (
+    <Section
+      id="checks"
+      title="Website checks"
+      subtitle={`Measured by code, not AI, on ${site.pages.length} page${site.pages.length === 1 ? "" : "s"}: ${site.pages.map((p) => p.kind).join(", ")}${
+        site.failedPages.length ? ` (${site.failedPages.length} could not be read)` : ""
+      }.`}
+    >
+      <p className="text-lg font-semibold">
+        {passed.length} passed{problems.length ? `, ${problems.length} to fix` : ", nothing to fix"}
+      </p>
+      {problems.length > 0 && <CheckList checks={problems} />}
+      {passed.length > 0 && (
+        <ul className="flex flex-wrap gap-2">
+          {passed.map((c) => (
+            <li key={c.id} className="rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-900" title={c.detail}>
+              ✓ {c.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
+  );
+}
+
+function CheckList({ checks }: { checks: SiteCheck[] }) {
+  return (
+    <ul className="divide-y divide-ink/10 rounded-xl border border-ink/10 bg-white">
+      {checks.map((c) => (
+        <li key={c.id} className="flex gap-3 px-5 py-3 text-sm">
+          <StatusIcon status={c.status} />
+          <span>
+            <span className="font-semibold">{c.label}</span>
+            <span className="block text-ink-soft">{c.detail}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/* ---------- Speed ---------- */
+
+function Speed({ speed }: { speed: PageSpeedResult }) {
+  const scores: { label: string; value: number | null }[] = [
+    { label: "Performance", value: speed.scores.performance },
+    { label: "SEO", value: speed.scores.seo },
+    { label: "Accessibility", value: speed.scores.accessibility },
+    { label: "Best practices", value: speed.scores.bestPractices },
+  ];
+  const metrics = speed.checks.filter((c) => c.id !== "speed-score" && c.id !== "lighthouse-seo");
+  return (
+    <Section
+      id="speed"
+      title="Speed and mobile"
+      subtitle={`Measured by Google PageSpeed Insights on a mobile phone${
+        speed.field ? `, with real Chrome users over the last 28 days${speed.field.wholeSite ? " (whole website)" : ""}` : ""
+      }. Not AI.`}
+    >
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {scores.map((s) => (
+          <li key={s.label} className="flex flex-col items-center rounded-xl border border-ink/10 bg-white px-3 py-5">
+            <ScoreRing value={s.value ?? 0} size={84} stroke={8} muted={s.value === null}>
+              <span className={`text-2xl font-bold ${s.value === null ? "text-ink-soft" : scoreText(s.value / 10)}`}>{s.value ?? "–"}</span>
+            </ScoreRing>
+            <span className="mt-2 text-sm font-medium">{s.label}</span>
+          </li>
+        ))}
+      </ul>
+      {metrics.length > 0 && <CheckList checks={metrics} />}
+    </Section>
+  );
+}
+
+/* ---------- Brand voice ---------- */
+
 function BrandVoice({ voice }: { voice: BrandVoiceResult }) {
   const p = voice.profile;
   return (
     <Section
+      id="brand-voice"
       title="Brand voice"
-      subtitle={`Grounding check: ${voice.grounding.verifiedQuotes} of ${voice.grounding.totalQuotes} quotes found word for word on the website.`}
+      subtitle={`How the website sounds and who it speaks to. ${voice.grounding.verifiedQuotes} of ${voice.grounding.totalQuotes} quotes were found word for word on the website.`}
     >
-      <div className="flex flex-wrap gap-2">
-        {p.tone.map((t) => (
-          <span key={t} className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-900">
-            {t}
-          </span>
-        ))}
-      </div>
-      <p className="text-stone-700">{p.toneSummary}</p>
-      <p className="text-stone-700">
-        <span className="font-medium">Positioning: </span>
-        {p.positioning}
-      </p>
-      <p className="text-stone-700">
-        <span className="font-medium">Audience: </span>
-        {p.audience.primary}
-        {p.audience.secondary ? ` Also: ${p.audience.secondary}` : ""}
-      </p>
-      <div className="grid gap-3 text-sm sm:grid-cols-3">
-        <List title="Key messages" items={p.keyMessages} />
-        <List title="Words they use" items={p.wordsTheyUse} />
-        <List title="Words to avoid" items={p.wordsToAvoid} />
+      <div className="rounded-xl border border-ink/10 bg-white p-6">
+        <p className="text-2xl font-bold capitalize tracking-tight">{p.tone.join(", ")}</p>
+        <p className="mt-2 max-w-[65ch] leading-relaxed text-ink-soft">{p.toneSummary}</p>
+        <div className="mt-6 grid gap-6 sm:grid-cols-2">
+          <div>
+            <p className="text-sm font-semibold">Positioning</p>
+            <p className="mt-1 leading-relaxed">{p.positioning}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold">Audience</p>
+            <p className="mt-1 leading-relaxed">
+              {p.audience.primary}
+              {p.audience.secondary ? ` Also: ${p.audience.secondary}` : ""}
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 grid gap-6 text-sm sm:grid-cols-3">
+          <List title="Key messages" items={p.keyMessages} />
+          <ChipList title="Words they use" items={p.wordsTheyUse} tone="bg-emerald-50 text-emerald-900" />
+          <ChipList title="Words to avoid" items={p.wordsToAvoid} tone="bg-red-50 text-red-900" />
+        </div>
       </div>
     </Section>
   );
 }
 
-function Content({ pack, site }: { pack: ContentPack; site?: WebsiteSummary }) {
+/* ---------- Posts ---------- */
+
+function Posts({ pack, site }: { pack: ContentPack; site?: WebsiteSummary }) {
   // New reports have a LinkedIn and an X post. Older ones have one or 14; at most two are shown.
   const posts = pack.posts.slice(0, 2);
   if (!posts.length) return null;
@@ -279,6 +424,7 @@ function Content({ pack, site }: { pack: ContentPack; site?: WebsiteSummary }) {
   const brand = site?.brand ?? { name: nameFromDomain(domain), iconUrl: null, color: null };
   return (
     <Section
+      id="posts"
       title={posts.length > 1 ? "Social media posts" : "Social media post"}
       subtitle={`Ready to post, in the brand's voice, previewed as they would look on ${posts.map((p) => p.platform).join(" and ")}.`}
     >
@@ -290,9 +436,9 @@ function Content({ pack, site }: { pack: ContentPack; site?: WebsiteSummary }) {
               <CopyButton
                 text={postText(post)}
                 label={`Copy ${post.platform} post`}
-                className="rounded-md border border-stone-300 bg-white px-2.5 py-1 font-medium text-stone-700 hover:border-stone-900"
+                className="rounded-md border border-ink/20 bg-white px-2.5 py-1 font-medium hover:border-ink"
               />
-              <span className="text-stone-500">Theme: {post.pillar}</span>
+              <span className="text-ink-soft">Theme: {post.pillar}</span>
             </div>
           </div>
         ))}
@@ -305,67 +451,53 @@ function Content({ pack, site }: { pack: ContentPack; site?: WebsiteSummary }) {
             Two weeks of posts like these, built on the three themes that suit the company best:{" "}
             {pack.pillars.map((p) => p.name).join(", ")}. Send me a message and I&apos;ll put it together.
           </p>
-          <a
-            href={SITE.linkedinUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-4 inline-block rounded-lg bg-white px-5 py-2.5 font-semibold text-ink hover:bg-marker focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
-          >
-            Message me on LinkedIn
-          </a>
+          <LinkedInButton className="mt-4 px-5 py-2.5" />
         </div>
       )}
     </Section>
   );
 }
 
-/** "acme-labs.co.uk" → "Acme Labs" (kept here so the browser bundle doesn't pull in the HTML parser). */
-function nameFromDomain(domain: string): string {
-  const first = domain.replace(/^www./, "").split(".")[0] ?? domain;
-  return first
-    .split(/[-_]/)
-    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
-    .join(" ") || "Company";
-}
+/* ---------- Automation plan ---------- */
 
 function Automations({ plan }: { plan: AutomationPlan }) {
   return (
-    <Section title="Automation plan" subtitle={plan.summary}>
-      <ol className="flex flex-col gap-3">
+    <Section id="automations" title="Automation plan" subtitle={plan.summary}>
+      <ol className="flex flex-col gap-4">
         {/* Older reports have 4–6 automations; the first three are the most valuable. */}
         {plan.automations.slice(0, 3).map((a, i) => (
-          <li key={i} className="rounded-lg border border-stone-200 bg-white p-4 text-sm">
+          <li key={i} className="rounded-xl border border-ink/10 bg-white p-5 sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">
+              <span className="text-lg font-semibold">
                 {i + 1}. {a.name}
               </span>
-              <Badge>Impact: {a.impact}</Badge>
-              <Badge>Effort: {a.effort}</Badge>
+              <Badge tone={levelTone(a.impact, "impact")}>Impact: {a.impact}</Badge>
+              <Badge tone={levelTone(a.effort, "effort")}>Effort: {a.effort}</Badge>
             </div>
-            <p className="mt-1 text-stone-700">{a.goal}</p>
-            <p className="mt-2 text-stone-600">
-              <span className="font-medium">Trigger: </span>
-              {a.trigger}
-            </p>
-            <ol className="mt-1 list-decimal pl-5 text-stone-700">
+            <p className="mt-1 text-ink-soft">{a.goal}</p>
+
+            {/* The workflow as a flow: what starts it, what happens, what it achieves. */}
+            <ol className="mt-5 flex flex-col">
+              <FlowStep kind="trigger" label="Trigger" text={a.trigger} />
               {a.steps.map((s, j) => (
-                <li key={j}>{s}</li>
+                <FlowStep key={j} kind="step" label={`Step ${j + 1}`} text={s} />
               ))}
+              <FlowStep kind="result" label="Result" text={a.metric} last />
             </ol>
-            <p className="mt-2 text-stone-600">
-              <span className="font-medium">Tools: </span>
-              {a.tools.join(", ")}
-            </p>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+              {a.tools.map((t) => (
+                <span key={t} className="rounded-full bg-mist px-3 py-1">
+                  {t}
+                </span>
+              ))}
+            </div>
             {a.aiRole && (
-              <p className="text-stone-600">
-                <span className="font-medium">Role of AI: </span>
+              <p className="mt-3 rounded-lg bg-mist/70 px-4 py-3 text-sm leading-relaxed">
+                <span className="font-semibold">Where AI helps: </span>
                 {a.aiRole}
               </p>
             )}
-            <p className="text-stone-600">
-              <span className="font-medium">Measure: </span>
-              {a.metric}
-            </p>
           </li>
         ))}
       </ol>
@@ -373,17 +505,112 @@ function Automations({ plan }: { plan: AutomationPlan }) {
   );
 }
 
+function FlowStep({ kind, label, text, last = false }: { kind: "trigger" | "step" | "result"; label: string; text: string; last?: boolean }) {
+  const dot =
+    kind === "trigger" ? "bg-ink ring-4 ring-mist" : kind === "result" ? "bg-emerald-500 ring-4 ring-emerald-100" : "bg-white border-2 border-ink/30";
+  return (
+    <li className="relative flex gap-4 pb-4 last:pb-0">
+      {!last && <span aria-hidden="true" className="absolute left-[7px] top-4 h-full w-px bg-ink/15" />}
+      <span aria-hidden="true" className={`relative mt-1 h-[15px] w-[15px] shrink-0 rounded-full ${dot}`} />
+      <div className="text-sm">
+        <span className="font-semibold">{label}: </span>
+        <span className={kind === "step" ? "text-ink-soft" : ""}>{text}</span>
+      </div>
+    </li>
+  );
+}
+
 /* ---------- Small building blocks ---------- */
 
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function Section({ id, title, subtitle, children }: { id: string; title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-3">
+    <section id={id} className="flex scroll-mt-24 flex-col gap-4">
       <div>
-        <h2 className="text-xl font-semibold">{title}</h2>
-        {subtitle && <p className="text-sm text-stone-600">{subtitle}</p>}
+        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+        {subtitle && <p className="mt-1 max-w-[70ch] text-sm leading-relaxed text-ink-soft">{subtitle}</p>}
       </div>
       {children}
     </section>
+  );
+}
+
+/** A score in a ring, filled by the score (Google PageSpeed uses the same style). */
+function ScoreRing({
+  value,
+  size,
+  stroke,
+  muted = false,
+  children,
+}: {
+  value: number;
+  size: number;
+  stroke: number;
+  muted?: boolean;
+  children: React.ReactNode;
+}) {
+  const r = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * r;
+  const color = muted ? "#cbd2dc" : value >= 70 ? "#10b981" : value >= 45 ? "#f59e0b" : "#ef4444";
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#eef1f5" strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - Math.max(0, Math.min(100, value)) / 100)}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>
+    </div>
+  );
+}
+
+function CompanyLogo({ iconUrl, name, size }: { iconUrl: string | null; name: string; size: number }) {
+  const [failed, setFailed] = useState(false);
+  if (iconUrl && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- the company's own icon, loaded from their site
+      <img
+        src={iconUrl}
+        alt=""
+        width={size}
+        height={size}
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className="shrink-0 rounded-xl border border-ink/10 bg-[#e9ebee] object-contain"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <span
+      aria-hidden="true"
+      className="flex shrink-0 items-center justify-center rounded-xl bg-ink font-bold text-white"
+      style={{ width: size, height: size, fontSize: size * 0.42 }}
+    >
+      {name.charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
+function StatusIcon({ status }: { status: SiteCheck["status"] }) {
+  const style = {
+    pass: "bg-emerald-100 text-emerald-800",
+    warn: "bg-amber-100 text-amber-800",
+    fail: "bg-red-100 text-red-800",
+  }[status];
+  const label = { pass: "Passed", warn: "Needs attention", fail: "Failed" }[status];
+  return (
+    <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${style}`} aria-label={label} role="img">
+      {status === "pass" ? "✓" : status === "warn" ? "!" : "✕"}
+    </span>
   );
 }
 
@@ -391,8 +618,8 @@ function List({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null;
   return (
     <div>
-      <p className="font-medium">{title}</p>
-      <ul className="list-disc pl-5 text-stone-700">
+      <p className="font-semibold">{title}</p>
+      <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-5 leading-relaxed">
         {items.map((item) => (
           <li key={item}>{item}</li>
         ))}
@@ -401,11 +628,65 @@ function List({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-function Badge({ children }: { children: React.ReactNode }) {
-  return <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-700">{children}</span>;
+function ChipList({ title, items, tone }: { title: string; items: string[]; tone: string }) {
+  if (!items.length) return null;
+  return (
+    <div>
+      <p className="font-semibold">{title}</p>
+      <ul className="mt-2 flex flex-wrap gap-1.5">
+        {items.map((item) => (
+          <li key={item} className={`rounded-full px-2.5 py-0.5 ${tone}`}>
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export function CopyButton({ text, label, className }: { text: string; label: string; className?: string }) {
+function Badge({ children, tone = "bg-mist text-ink" }: { children: React.ReactNode; tone?: string }) {
+  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${tone}`}>{children}</span>;
+}
+
+/** High impact and low effort are good news (green); the opposite is amber. */
+function levelTone(level: string, kind: "impact" | "effort"): string {
+  const good = kind === "impact" ? level === "high" : level === "low";
+  const bad = kind === "impact" ? level === "low" : level === "high";
+  return good ? "bg-emerald-50 text-emerald-900" : bad ? "bg-amber-50 text-amber-900" : "bg-mist text-ink";
+}
+
+function LinkedInButton({ className = "" }: { className?: string }) {
+  return (
+    <a
+      href={SITE.linkedinUrl}
+      target="_blank"
+      rel="noreferrer"
+      className={`inline-block rounded-lg bg-white font-semibold text-ink hover:bg-marker focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker ${className}`}
+    >
+      Message me on LinkedIn
+    </a>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-ink-soft transition-transform group-open:rotate-180" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+export function CopyButton({
+  text,
+  label,
+  className,
+  copiedLabel = "Copied",
+}: {
+  text: string;
+  label: string;
+  className?: string;
+  copiedLabel?: string;
+}) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -416,24 +697,32 @@ export function CopyButton({ text, label, className }: { text: string; label: st
           setTimeout(() => setCopied(false), 1500);
         });
       }}
-      className={className ?? "mt-2 text-xs font-medium text-stone-500 hover:text-stone-900"}
+      className={className ?? "mt-2 text-xs font-medium text-ink-soft hover:text-ink"}
     >
-      {copied ? "Copied" : label}
+      {copied ? copiedLabel : label}
     </button>
   );
 }
 
 function JsonBlock({ label, value }: { label: string; value: unknown }) {
   return (
-    <details className="rounded-lg border border-stone-200 bg-white">
+    <details className="rounded-lg border border-ink/10 bg-white">
       <summary className="cursor-pointer px-4 py-2 text-sm font-medium">{label}</summary>
-      <pre className="max-h-[32rem] overflow-auto border-t border-stone-200 p-4 text-xs leading-relaxed">
-        {JSON.stringify(value, null, 2)}
-      </pre>
+      <pre className="max-h-[32rem] overflow-auto border-t border-ink/10 p-4 text-xs leading-relaxed">{JSON.stringify(value, null, 2)}</pre>
     </details>
   );
 }
 
-const scoreColor = (score10: number) =>
-  score10 >= 7 ? "text-emerald-700" : score10 >= 4.5 ? "text-amber-600" : "text-red-600";
-const barColor = (score10: number) => (score10 >= 7 ? "bg-emerald-500" : score10 >= 4.5 ? "bg-amber-400" : "bg-red-500");
+/** "acme-labs.co.uk" → "Acme Labs" (kept here so the browser bundle doesn't pull in the HTML parser). */
+function nameFromDomain(domain: string): string {
+  const first = domain.replace(/^www\./, "").split(".")[0] ?? domain;
+  return (
+    first
+      .split(/[-_]/)
+      .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+      .join(" ") || "Company"
+  );
+}
+
+const scoreText = (score10: number) => (score10 >= 7 ? "text-emerald-700" : score10 >= 4.5 ? "text-amber-600" : "text-red-600");
+const scoreBar = (score10: number) => (score10 >= 7 ? "bg-emerald-500" : score10 >= 4.5 ? "bg-amber-400" : "bg-red-500");
