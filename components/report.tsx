@@ -403,11 +403,7 @@ function BrandVoice({ voice }: { voice: BrandVoiceResult }) {
             </p>
           </div>
         </div>
-        <div className="mt-6 grid gap-6 text-sm sm:grid-cols-3">
-          <List title="Key messages" items={p.keyMessages} />
-          <ChipList title="Words they use" items={p.wordsTheyUse} tone="bg-emerald-50 text-emerald-900" />
-          <ChipList title="Words to avoid" items={p.wordsToAvoid} tone="bg-red-50 text-red-900" />
-        </div>
+        {/* Key messages and word lists are still generated (the post writer uses them) but not shown. */}
       </div>
     </Section>
   );
@@ -622,22 +618,6 @@ function List({ title, items }: { title: string; items: string[] }) {
       <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-5 leading-relaxed">
         {items.map((item) => (
           <li key={item}>{item}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function ChipList({ title, items, tone }: { title: string; items: string[]; tone: string }) {
-  if (!items.length) return null;
-  return (
-    <div>
-      <p className="font-semibold">{title}</p>
-      <ul className="mt-2 flex flex-wrap gap-1.5">
-        {items.map((item) => (
-          <li key={item} className={`rounded-full px-2.5 py-0.5 ${tone}`}>
-            {item}
-          </li>
         ))}
       </ul>
     </div>
