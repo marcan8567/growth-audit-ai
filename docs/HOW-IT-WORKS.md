@@ -45,7 +45,7 @@ If the visitor closes the tab, the server stops sending and doesn't start AI ste
 ## 6. The full pipeline (Milestone 3)
 
 ```
-read website + 10 code checks ──┬── brand voice ──── social media post (in that voice)
+read website + 10 code checks ──┬── brand voice ──── LinkedIn + X posts (in that voice)
                                 ├── growth audit (6 scores + quick wins)
                                 └── automation plan
 ```
@@ -105,11 +105,11 @@ read website + 10 code checks ──┬── brand voice ──── social me
 
 ## 10. One free post, then a call to action (lead generation)
 
-The report used to include a 14-day content pack. It now gives **one** ready-to-post social media post, followed by: *"Want a full content plan for {company}? Two weeks of posts like this one, built on these three themes … Message me on LinkedIn."*
+The report used to include a 14-day content pack. It now gives **two short posts** (one for LinkedIn, one for X), followed by: *"Want a full content plan for {company}? Two weeks of posts like this one, built on these three themes … Message me on LinkedIn."*
 
 | Decision | Why |
 | --- | --- |
-| **Give one good sample, offer the rest** | The classic lead-magnet pattern: the free post proves the quality, the full plan is a reason to get in touch |
+| **Give a good sample, offer the rest** | The classic lead-magnet pattern: the free post proves the quality, the full plan is a reason to get in touch |
 | **Name the company's three content themes in the offer** | Makes the offer concrete and specific to that company, not a generic "contact me" |
 | **Faster and cheaper as a side effect** | Writing 14 posts took 50–90 seconds; one post takes about 13. A full audit dropped from 65–105 seconds to about 55 |
 | **Old reports adapt automatically** | Reports saved with 14 posts now show only the first, with the same call to action |
@@ -134,11 +134,11 @@ The homepage shows the three newest audits as boxes (website, score, grade, how 
 
 | Decision | Why |
 | --- | --- |
-| **Each platform has its own layout**: LinkedIn and Facebook (header, "see more", action bar), X (handle, 280-character count), Instagram (square visual, caption with "more") | A marketer judges a post by how it looks in the feed, not as plain text |
+| **Two posts side by side: LinkedIn and X**, each in its platform's layout (LinkedIn: header, "see more", action bar; X: handle, 280-character count). Older reports can still show Instagram and Facebook layouts | A marketer judges a post by how it looks in the feed, not as plain text; two platforms show the copy adapting to each |
 | **Posted by the audited company**: name, logo and colour are read from its homepage (`lib/reader/brand.ts`, no extra requests) | It feels like their post. Sites without a declared colour get one from a small palette, always the same per domain |
 | **Designed visuals** for image, carousel and short-video posts: the AI writes a short headline, the page sets it on the brand colour | A branded graphic without generating images |
 | **No official logos, no invented likes or follower counts** | The logos are trademarks, and fake engagement numbers would be made-up data |
-| **Platform rules in the schema**: X posts must fit in 280 characters, Instagram posts need a visual, visual formats need a headline | Broken rules become precise retry messages, like every other step |
+| **Platform rules in the schema**: exactly one LinkedIn post then one X post, different hooks, LinkedIn at most 600 characters, X at most 280, image posts need a headline | Short posts get read in full; broken rules become precise retry messages, like every other step |
 | **A sharper prompt**: scroll-stopping first line, wit in the brand's own voice, banned clichés ("game-changer", "unlock", "Did you know") | Generic AI copy is easy to spot; the bans and the hook rule push it toward something a good social media manager would write |
 
 ## 13. What an audit costs, and how it was cut by 60%

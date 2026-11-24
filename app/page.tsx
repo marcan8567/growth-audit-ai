@@ -40,8 +40,8 @@ export default async function Home() {
               <span className="block text-balance">Get its growth audit.</span>
             </h1>
             <p className="mt-6 max-w-[56ch] text-lg leading-relaxed text-ink-soft">
-              In about a minute: scores for six growth areas, Google speed data, the brand voice, a ready-to-post
-              social media post and a marketing automation plan. Built only from what is on the company&apos;s public
+              In about a minute: scores for six growth areas, Google speed data, the brand voice, two ready-to-post
+              social media posts and a marketing automation plan. Built only from what is on the company&apos;s public
               website.
             </p>
 
@@ -253,8 +253,8 @@ const COVERS = [
     text: "Tone, audience, positioning and the words the company uses, so new content sounds like them.",
   },
   {
-    term: "A post to publish",
-    text: "One ready-to-post social media post in the brand's voice. Want a full content plan? Get in touch on LinkedIn.",
+    term: "Posts to publish",
+    text: "A short post for LinkedIn and one for X, in the brand's voice and ready to copy. Want a full content plan? Get in touch on LinkedIn.",
   },
   {
     term: "Automation plan",
@@ -277,7 +277,7 @@ const STEPS = [
   },
   {
     title: "Judge",
-    text: "The AI writes the brand voice, the scores, a social media post and the automation plan, in parallel where it can.",
+    text: "The AI writes the brand voice, the scores, two social media posts and the automation plan, in parallel where it can.",
   },
   {
     title: "Verify",

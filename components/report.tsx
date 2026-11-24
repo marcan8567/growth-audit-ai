@@ -224,36 +224,38 @@ function BrandVoice({ voice }: { voice: BrandVoiceResult }) {
 }
 
 function Content({ pack, site }: { pack: ContentPack; site?: WebsiteSummary }) {
-  // Older saved reports have 14 posts; every report now shows one, and the full plan is offered on LinkedIn.
-  const post = pack.posts[0];
-  if (!post) return null;
+  // New reports have a LinkedIn and an X post. Older ones have one or 14; at most two are shown.
+  const posts = pack.posts.slice(0, 2);
+  if (!posts.length) return null;
   const domain = site?.domain ?? "";
   // Reports saved before brand detection get a name from the domain and the company's initial as avatar.
   const brand = site?.brand ?? { name: nameFromDomain(domain), iconUrl: null, color: null };
   return (
     <Section
-      title="Social media post"
-      subtitle={`A ready-to-post suggestion in the brand's voice, previewed as it would look on ${post.platform}.`}
+      title={posts.length > 1 ? "Social media posts" : "Social media post"}
+      subtitle={`Ready to post, in the brand's voice, previewed as they would look on ${posts.map((p) => p.platform).join(" and ")}.`}
     >
-      <div className="max-w-xl">
-        <SocialPostPreview post={post} brand={brand} domain={domain} socialLinks={site?.socialLinks ?? []} />
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          <CopyButton
-            text={postText(post)}
-            label="Copy post text"
-            className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-medium text-stone-700 hover:border-stone-900"
-          />
-          <span className="text-stone-500">
-            Format: {post.format}. Theme: {post.pillar}.
-          </span>
-        </div>
+      <div className={`grid items-start gap-5 ${posts.length > 1 ? "md:grid-cols-2" : "max-w-md"}`}>
+        {posts.map((post, i) => (
+          <div key={i}>
+            <SocialPostPreview post={post} brand={brand} domain={domain} socialLinks={site?.socialLinks ?? []} />
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <CopyButton
+                text={postText(post)}
+                label={`Copy ${post.platform} post`}
+                className="rounded-md border border-stone-300 bg-white px-2.5 py-1 font-medium text-stone-700 hover:border-stone-900"
+              />
+              <span className="text-stone-500">Theme: {post.pillar}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
       {SITE.linkedinUrl && (
         <div className="rounded-xl bg-ink p-6 text-white">
           <h3 className="text-lg font-semibold">Want a full content plan{domain ? ` for ${domain}` : ""}?</h3>
           <p className="mt-2 max-w-[60ch] leading-relaxed text-white/80">
-            Two weeks of posts like this one, built on the three themes that suit the company best:{" "}
+            Two weeks of posts like these, built on the three themes that suit the company best:{" "}
             {pack.pillars.map((p) => p.name).join(", ")}. Send me a message and I&apos;ll put it together.
           </p>
           <a

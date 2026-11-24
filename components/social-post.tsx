@@ -54,9 +54,9 @@ const SYSTEM_FONT = { fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI"
 
 function LinkedInPost({ post, brand, domain }: Props) {
   return (
-    <div style={SYSTEM_FONT} className="overflow-hidden rounded-lg border border-[#e0dfdc] bg-white text-[14px] text-[#191919]">
+    <div style={SYSTEM_FONT} className="overflow-hidden rounded-lg border border-[#e0dfdc] bg-white text-[13px] text-[#191919]">
       <div className="flex items-start gap-2 px-4 pt-3">
-        <Avatar brand={brand} domain={domain} size={48} shape="square" />
+        <Avatar brand={brand} domain={domain} size={40} shape="square" />
         <div className="min-w-0 flex-1 leading-tight">
           <p className="truncate font-semibold">{brand.name}</p>
           <p className="truncate text-[12px] text-[#666]">{domain}</p>
@@ -64,9 +64,9 @@ function LinkedInPost({ post, brand, domain }: Props) {
             Now <Globe />
           </p>
         </div>
-        <span className="shrink-0 text-[14px] font-semibold text-[#0a66c2]">+ Follow</span>
+        <span className="shrink-0 text-[13px] font-semibold text-[#0a66c2]">+ Follow</span>
       </div>
-      <ExpandableText post={post} tagColor="text-[#0a66c2]" moreLabel="…see more" className="px-4 pt-2 pb-3" />
+      <ExpandableText post={post} tagColor="text-[#0a66c2]" moreLabel="…see more" className="px-4 pt-2 pb-2" />
       {hasVisual(post) && <Visual post={post} brand={brand} domain={domain} aspect="aspect-[1.91/1]" />}
       <ActionBar
         color="text-[#666]"
@@ -86,8 +86,8 @@ function XPost({ post, brand, domain, socialLinks }: Props) {
   const length = postText(post).length;
   return (
     <div>
-      <div style={SYSTEM_FONT} className="flex gap-3 rounded-2xl border border-[#cfd9de] bg-white px-4 py-3 text-[15px] text-[#0f1419]">
-        <Avatar brand={brand} domain={domain} size={40} shape="circle" />
+      <div style={SYSTEM_FONT} className="flex gap-3 rounded-2xl border border-[#cfd9de] bg-white px-4 py-3 text-[14px] text-[#0f1419]">
+        <Avatar brand={brand} domain={domain} size={36} shape="circle" />
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1 truncate leading-5">
             <span className="truncate font-bold">{brand.name}</span>
@@ -236,7 +236,7 @@ function ExpandableText({
   const [open, setOpen] = useState(false);
   return (
     <div className={className}>
-      <p className={`whitespace-pre-line leading-5 ${open ? "" : "line-clamp-3"}`}>
+      <p className={`whitespace-pre-line leading-[1.35] ${open ? "" : "line-clamp-5"}`}>
         <PostText post={post} tagColor={tagColor} />
       </p>
       {!open && (
@@ -313,9 +313,9 @@ function Avatar({ brand, domain, size, shape }: { brand: Brand; domain: string; 
 
 function ActionBar({ items, color }: { items: [string, React.ReactNode][]; color: string }) {
   return (
-    <div className={`mx-3 flex justify-around border-t border-black/10 py-1 text-[13px] font-semibold ${color}`}>
+    <div className={`mx-3 flex justify-around border-t border-black/10 py-0.5 text-[12px] font-semibold ${color}`}>
       {items.map(([label, icon]) => (
-        <span key={label} className="flex items-center gap-1.5 px-2 py-2">
+        <span key={label} className="flex items-center gap-1 px-1.5 py-1.5">
           {icon}
           <span className="hidden sm:inline">{label}</span>
         </span>
@@ -372,7 +372,7 @@ const readableOn = (hex: string) => (luminance(hex) > 0.45 ? "#111111" : "#fffff
 
 /* ---------- Icons (simple outlines, not platform logos) ---------- */
 
-const iconProps = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
+const iconProps = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
 
 const Globe = () => (
   <svg {...iconProps} width={12} height={12}>

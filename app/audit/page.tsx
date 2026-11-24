@@ -16,7 +16,7 @@ const STEPS: { id: StepId; label: string }[] = [
   { id: "brandVoice", label: "Analysing the brand voice" },
   { id: "audit", label: "Scoring the growth audit" },
   { id: "automation", label: "Planning automations" },
-  { id: "contentPack", label: "Writing a social media post" },
+  { id: "contentPack", label: "Writing LinkedIn and X posts" },
 ];
 
 const IDLE: Record<StepId, Status> = { speed: "idle", read: "idle", brandVoice: "idle", audit: "idle", automation: "idle", contentPack: "idle" };
@@ -120,7 +120,7 @@ export default function AuditPage() {
           </Link>
         <h1 className="mt-1 text-3xl font-semibold">Any company URL in, a growth audit out</h1>
         <p className="mt-2 text-stone-600">
-          A scored audit, Google speed data, the brand voice, a ready-to-post social media post and an automation plan,
+          A scored audit, Google speed data, the brand voice, ready-to-post LinkedIn and X posts and an automation plan,
           built from the company&apos;s own public website. Takes about a minute.
         </p>
       </header>
