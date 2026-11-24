@@ -23,6 +23,8 @@ export interface ReportData {
 export interface SavedReport extends ReportData {
   id: string;
   createdAt: string;
+  /** True when the owner ran it with the access code: shown in full to everyone. */
+  owner?: boolean;
 }
 
 // Visitors' reports are kept for 6 months, then Redis deletes them automatically.
@@ -56,7 +58,7 @@ export async function saveReport(data: ReportData, { owner = false } = {}): Prom
   if (!redis) return null;
   const id = randomBytes(8).toString("base64url").slice(0, 10);
   const createdAt = new Date().toISOString();
-  const report: SavedReport = { ...data, id, createdAt };
+  const report: SavedReport = { ...data, id, createdAt, owner };
 
   if (owner) {
     await redis.set(`report:${id}`, report);

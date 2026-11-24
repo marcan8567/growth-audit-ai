@@ -163,6 +163,20 @@ Every AI call logs its token counts (`[usage]` lines in Vercel → Logs), so cos
 
 **Talking point:** "I measured cost per step before optimising. Most of the bill was the model's hidden reasoning, so I turned that down, and moved the two simplest steps to a model a fifth of the price. Cost dropped about 60% with no visible loss in the parts people read."
 
+## 14. Quick wins: one free, the rest on request (`lib/report-access.ts`)
+
+Visitors see the first quick win in full. The others appear as blurred cards behind: *"3 more fixes for basecamp.com, ranked by impact. Message me on LinkedIn and I'll send you the full list, and help you put the fixes in place."*
+
+| Decision | Why |
+| --- | --- |
+| **Show one fix in full** | A visitor has to see the quality before they have a reason to get in touch; blurring everything would remove the proof |
+| **The hidden fixes are removed on the server**, and the blurred cards contain placeholder text | A CSS blur alone can be undone with the browser's inspector. Tested: a visitor's page contains only the first of the four saved fixes |
+| **The full report is still saved** | When someone gets in touch, the complete list is ready to send |
+| **Audits run with the access code are shown in full** (`owner` flag on the report) | The homepage showcase and the reports sent to companies before interviews show the whole quality |
+| **Only the quick wins are gated** | Scores, checks, speed, brand voice, posts and the automation plan stay open, so the report is useful on its own |
+
+**Talking point:** "The report gives real value for free and gates only the part a company would pay for: the prioritised fix list and help implementing it."
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.

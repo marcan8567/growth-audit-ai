@@ -23,7 +23,7 @@ export function Report({ data, showRawData = false }: { data: ReportData; showRa
       {audit && site && <Overview audit={audit} domain={site.domain} />}
       {checks && site && <Checks checks={checks} site={site} />}
       {speed && <Speed speed={speed} />}
-      {audit && <Scores audit={audit} />}
+      {audit && <Scores audit={audit} domain={site?.domain} />}
       {brandVoice && <BrandVoice voice={brandVoice} />}
       {contentPack && <Content pack={contentPack} site={site} />}
       {automation && <Automations plan={automation} />}
@@ -130,7 +130,7 @@ function Speed({ speed }: { speed: PageSpeedResult }) {
   );
 }
 
-function Scores({ audit }: { audit: GrowthAuditResult }) {
+function Scores({ audit, domain }: { audit: GrowthAuditResult; domain?: string }) {
   return (
     <Section
       title="Growth audit"
@@ -185,8 +185,55 @@ function Scores({ audit }: { audit: GrowthAuditResult }) {
             <p className="mt-1 text-stone-500">{w.why}</p>
           </li>
         ))}
+        {audit.hiddenQuickWins ? <HiddenQuickWins count={audit.hiddenQuickWins} start={audit.quickWins.length + 1} domain={domain} /> : null}
       </ol>
     </Section>
+  );
+}
+
+/**
+ * The quick wins a visitor doesn't see: blurred placeholder cards (the real text never reaches the
+ * browser, see lib/report-access.ts) with an offer to send the full list and help put it in place.
+ */
+function HiddenQuickWins({ count, start, domain }: { count: number; start: number; domain?: string }) {
+  return (
+    <li className="relative">
+      <div aria-hidden="true" className="pointer-events-none flex select-none flex-col gap-3 blur-[5px]">
+        {Array.from({ length: count }, (_, i) => (
+          <div key={i} className="rounded-lg border border-stone-200 bg-white p-4 text-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-medium">
+                {start + i}. Placeholder fix title for this website
+              </span>
+              <Badge>Impact: high</Badge>
+              <Badge>Effort: low</Badge>
+            </div>
+            <p className="mt-1 text-stone-700">What to change, specific to this company, and where on the website.</p>
+            <p className="mt-1 text-stone-500">The effect this is expected to have on growth.</p>
+          </div>
+        ))}
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center p-3">
+        <div className="max-w-md rounded-xl bg-ink p-5 text-center text-white shadow-lg">
+          <p className="font-semibold">
+            {count} more {count === 1 ? "fix" : "fixes"}{domain ? ` for ${domain}` : ""}, ranked by impact
+          </p>
+          <p className="mt-1.5 text-sm leading-relaxed text-white/80">
+            Message me on LinkedIn and I&apos;ll send you the full list, and help you put the fixes in place.
+          </p>
+          {SITE.linkedinUrl && (
+            <a
+              href={SITE.linkedinUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-block rounded-lg bg-white px-4 py-2 text-sm font-semibold text-ink hover:bg-marker focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
+            >
+              Message me on LinkedIn
+            </a>
+          )}
+        </div>
+      </div>
+    </li>
   );
 }
 

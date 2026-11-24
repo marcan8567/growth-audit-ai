@@ -7,7 +7,8 @@ import { fetchPageSpeed, isPageSpeedConfigured, type PageSpeedResult } from "@/l
 import { runAutomationPlan } from "@/lib/steps/automation-plan";
 import { runBrandVoice } from "@/lib/steps/brand-voice";
 import { runContentPack } from "@/lib/steps/content-pack";
-import { runGrowthAudit } from "@/lib/steps/growth-audit";
+import { runGrowthAudit, type GrowthAuditResult } from "@/lib/steps/growth-audit";
+import { redactAuditForVisitor } from "@/lib/report-access";
 import { checkAccess } from "@/lib/store/rate-limit";
 import { saveReport, type ReportData } from "@/lib/store/reports";
 
@@ -48,6 +49,8 @@ export async function POST(request: Request) {
   // Access code, or a free audit within the daily limits (see lib/store/rate-limit.ts).
   const access = await checkAccess(request, body.accessCode);
   if (!access.allowed) return Response.json({ error: access.error }, { status: access.status });
+  // True when the access code was used: the owner sees everything and the audit is listed on the homepage.
+  const owner = access.owner;
 
   // Collected as the steps finish, then saved so the report gets its own link.
   const report: ReportData = {};
@@ -74,7 +77,9 @@ export async function POST(request: Request) {
         try {
           const data = await run();
           if (id !== "read") Object.assign(report, { [id]: data });
-          send({ type: "step", step: id, status: "done", data, ms: Date.now() - started });
+          // Visitors see the first quick win only; the full audit is still saved (lib/report-access.ts).
+          const shown = id === "audit" && !owner ? redactAuditForVisitor(data as GrowthAuditResult) : data;
+          send({ type: "step", step: id, status: "done", data: shown, ms: Date.now() - started });
           return data;
         } catch (err) {
           console.error(`[audit] ${id} step failed:`, err);
@@ -120,7 +125,7 @@ export async function POST(request: Request) {
         // 4. Save the report so it gets its own link. Skipped if the visitor left or nothing useful came back.
         if (!disconnected() && (report.audit || report.brandVoice)) {
           try {
-            const id = await saveReport(report, { owner: access.owner });
+            const id = await saveReport(report, { owner });
             if (id) send({ type: "saved", id });
           } catch (err) {
             console.error("[audit] saving the report failed:", err); // the report is still on screen

@@ -20,6 +20,8 @@ export interface GrowthAuditResult {
     evidence: (Category["evidence"][number] & { verified: boolean })[];
   })[];
   quickWins: GrowthAudit["quickWins"];
+  /** Set when a visitor sees the report: how many quick wins were left out (see lib/report-access.ts). */
+  hiddenQuickWins?: number;
   grounding: { verifiedQuotes: number; totalQuotes: number };
 }
 

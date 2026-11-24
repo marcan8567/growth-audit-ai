@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Report } from "@/components/report";
+import { redactReportForVisitor } from "@/lib/report-access";
 import { loadReport } from "@/lib/store/reports";
 
 // A saved report, read from Redis on every visit. Links look like /r/AbC123xYz_.
@@ -47,7 +48,8 @@ export default async function SavedReportPage({ params }: Props) {
         </Link>
       </header>
 
-      <Report data={report} />
+      {/* Visitors' reports hide all but the first quick win; the owner's showcase audits are shown in full. */}
+      <Report data={report.owner ? report : redactReportForVisitor(report)} />
     </main>
   );
 }
