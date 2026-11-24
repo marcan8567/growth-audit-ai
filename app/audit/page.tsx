@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { CopyButton, Report } from "@/components/report";
 import type { ProgressEvent, StepId } from "@/lib/events";
 import type { SiteCheck } from "@/lib/reader/checks";
@@ -31,8 +32,24 @@ export default function AuditPage() {
   const [reportId, setReportId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function runAudit(e: React.FormEvent) {
+  // Coming from the homepage form (/audit?url=…): fill in the address and start straight away.
+  // The address is then removed from the browser bar, so reloading the page doesn't start another audit.
+  useEffect(() => {
+    const fromHomepage = new URLSearchParams(window.location.search).get("url");
+    if (!fromHomepage) return;
+    window.history.replaceState(null, "", "/audit");
+    setUrl(fromHomepage);
+    void startAudit(fromHomepage);
+    // Runs once on page load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function runAudit(e: React.FormEvent) {
     e.preventDefault();
+    void startAudit(url);
+  }
+
+  async function startAudit(url: string) {
     setBusy(true);
     setError(null);
     setResults({});
@@ -98,7 +115,9 @@ export default function AuditPage() {
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 py-12">
       <header>
-        <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">Growth Audit AI</p>
+        <Link href="/" className="text-lg font-bold tracking-tight text-ink hover:underline">
+            Growth Audit AI
+          </Link>
         <h1 className="mt-1 text-3xl font-semibold">Any company URL in, a growth audit out</h1>
         <p className="mt-2 text-stone-600">
           Brand voice, a scored audit, a 14-day content pack and an automation plan, built from the company&apos;s own

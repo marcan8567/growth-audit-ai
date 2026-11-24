@@ -2,7 +2,9 @@
 
 Enter any company URL and get a brand voice profile, a scored growth audit, a 14-day content pack and an automation plan, all built from the company's own public website.
 
-> Status: Milestones 1–4 done, plus Google PageSpeed data (website reader, speed and mobile scores, brand voice, growth audit, content pack, automation plan, report page, saved shareable reports, rate limits). Next: a proper landing page.
+> Status: complete for now: landing page, website reader, Google speed and mobile data, brand voice, growth audit, content pack, automation plan, saved shareable reports and rate limits.
+>
+> Live: https://growth-audit-ai.vercel.app
 
 ## How it works
 
@@ -31,14 +33,15 @@ cp .env.example .env.local   # then add ANTHROPIC_API_KEY, or set AI_PROVIDER=ge
 npm run dev
 ```
 
-Open http://localhost:3000/test.
+Open http://localhost:3000 (or go straight to http://localhost:3000/audit).
 
 ## Project structure
 
 ```
 app/
   api/audit/route.ts      runs the pipeline and streams progress events (NDJSON) to the page
-  test/page.tsx           audit page: URL in, live steps, full report out, share link
+  page.tsx                landing page with a live sample report
+  audit/page.tsx          audit page: URL in, live steps, full report out, share link (/test redirects here)
   r/[id]/page.tsx         a saved report, opened from its share link
 components/
   report.tsx              the report itself, shared by both pages
@@ -48,6 +51,7 @@ lib/
   schemas/                Zod schemas, one per AI step
   steps/                  one file per pipeline step, plus the shared grounding check
   store/                  Upstash Redis: saved reports and rate limits
+  site.ts                 author, links and the sample report shown on the homepage
 prompts/                  prompts, kept separate so they're easy to improve
 ```
 

@@ -92,6 +92,17 @@ read website + 10 code checks ──┬── brand voice ──── content p
 
 **Talking point:** "I combine three kinds of evidence: facts measured by my own code, measurements from Google, and the AI's judgement on top. The AI has to agree with the first two."
 
+## 9. The landing page (`app/page.tsx`)
+
+| Decision | Why |
+| --- | --- |
+| **A real report next to the headline** (Basecamp, read from Redis and set never to expire) | Visitors see what they'll get before typing anything. A real result is more convincing than a description |
+| **The "biggest opportunity" sentence is marked like a highlighter** | One memorable detail that looks like a reviewer marking a printed report; everything else on the page stays quiet |
+| **The form starts the audit directly** (`/audit?url=…`, then the address bar is cleaned up) | One step from landing to results; reloading the page doesn't start a second audit |
+| **One typeface (Schibsted Grotesk), ink navy and one yellow** | A consistent look across the homepage, audit page and shared reports. Green, amber and red appear only as score colours |
+| **The audit page moved from /test to /audit**, with a permanent redirect | "test" looks unfinished on a CV, and old links keep working |
+| **Project details in one file** (`lib/site.ts`) | Name, GitHub link and sample report can be changed without touching the page |
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.
