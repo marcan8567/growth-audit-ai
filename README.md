@@ -23,7 +23,7 @@ Every AI answer must match a Zod schema. If it doesn't, the AI is told the exact
 
 ## Tech stack
 
-Next.js (App Router, TypeScript) · Tailwind CSS · Anthropic TypeScript SDK (Claude) or Google Gen AI SDK (Gemini), switchable with `AI_PROVIDER` · Zod · Cheerio · Google PageSpeed Insights API · Upstash Redis + Ratelimit · Vercel
+Next.js (App Router, TypeScript) · Tailwind CSS · Anthropic TypeScript SDK (Claude) or Google Gen AI SDK (Gemini 3.8 Flash + 3.1 Flash-Lite), switchable with `AI_PROVIDER` · Zod · Cheerio · Google PageSpeed Insights API · Upstash Redis + Ratelimit · Vercel
 
 ## Run it locally
 

@@ -1,5 +1,5 @@
 import "server-only"; // build fails if this file is ever imported into browser code
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { getClient, getModel } from "./client";
 
 /**
@@ -8,7 +8,14 @@ import { getClient, getModel } from "./client";
  * the retry, the grounding check) is the same for every provider.
  *
  * Choose the provider with AI_PROVIDER=anthropic (default) or AI_PROVIDER=gemini.
+ *
+ * Each step also picks a tier, to balance cost and quality:
+ * - "fast": a cheap model for steps that summarise or plan (brand voice, automation plan)
+ * - "smart": a stronger model, with thinking kept low, for what the reader judges the report by
+ *   (the growth audit and the social media post)
  */
+
+export type Tier = "fast" | "smart";
 
 export type Provider = "anthropic" | "gemini";
 
@@ -18,6 +25,9 @@ export interface ChatTurn {
 }
 
 export interface CompletionRequest {
+  /** Step name, used in the usage log. */
+  label?: string;
+  tier: Tier;
   system: string;
   messages: ChatTurn[];
   maxTokens: number;
@@ -44,13 +54,14 @@ export async function complete(request: CompletionRequest): Promise<CompletionRe
   return getProvider() === "gemini" ? completeWithGemini(request) : completeWithAnthropic(request);
 }
 
-async function completeWithAnthropic({ system, messages, maxTokens }: CompletionRequest): Promise<CompletionResult> {
+async function completeWithAnthropic({ label, system, messages, maxTokens }: CompletionRequest): Promise<CompletionResult> {
   const response = await getClient().messages.create({
     model: getModel(),
     max_tokens: maxTokens + THINKING_HEADROOM,
     system,
     messages,
   });
+  console.info(`[usage] ${label ?? "AI call"}: input ${response.usage.input_tokens}, output ${response.usage.output_tokens}`);
   return {
     text: response.content.map((block) => (block.type === "text" ? block.text : "")).join(""),
     truncated: response.stop_reason === "max_tokens",
@@ -59,24 +70,39 @@ async function completeWithAnthropic({ system, messages, maxTokens }: Completion
 
 let gemini: GoogleGenAI | null = null;
 
-async function completeWithGemini({ system, messages, maxTokens }: CompletionRequest): Promise<CompletionResult> {
+async function completeWithGemini({ label, tier, system, messages, maxTokens }: CompletionRequest): Promise<CompletionResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set. Add it to .env.local (or to Vercel's environment variables).");
   gemini ??= new GoogleGenAI({ apiKey });
 
   const response = await gemini.models.generateContent({
-    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
+    model: geminiModel(tier),
     // Gemini calls the assistant role "model".
     contents: messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
     config: {
       systemInstruction: system,
       maxOutputTokens: maxTokens + THINKING_HEADROOM,
       responseMimeType: "application/json", // asks Gemini for raw JSON, no code fences
+      // Thinking is billed as output and was most of the cost; "low" kept the quality in testing.
+      ...(tier === "smart" ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {}),
     },
   });
+
+  // Token counts per call, for cost tracking (Vercel → Logs). Thinking tokens are billed as output.
+  const u = response.usageMetadata;
+  console.info(
+    `[usage] ${label ?? "AI call"} (${geminiModel(tier)}): input ${u?.promptTokenCount ?? "?"}, output ${u?.candidatesTokenCount ?? "?"}, thinking ${u?.thoughtsTokenCount ?? 0}, cached ${u?.cachedContentTokenCount ?? 0}`,
+  );
 
   return {
     text: response.text ?? "",
     truncated: response.candidates?.[0]?.finishReason === "MAX_TOKENS",
   };
+}
+
+/** Gemini model per tier. Both can be changed in the environment without touching code. */
+function geminiModel(tier: Tier): string {
+  return tier === "fast"
+    ? process.env.GEMINI_MODEL_FAST || "gemini-3.1-flash-lite"
+    : process.env.GEMINI_MODEL || "gemini-3.8-flash";
 }

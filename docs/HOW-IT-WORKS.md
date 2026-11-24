@@ -141,13 +141,34 @@ The homepage shows the three newest audits as boxes (website, score, grade, how 
 | **Platform rules in the schema**: X posts must fit in 280 characters, Instagram posts need a visual, visual formats need a headline | Broken rules become precise retry messages, like every other step |
 | **A sharper prompt**: scroll-stopping first line, wit in the brand's own voice, banned clichés ("game-changer", "unlock", "Did you know") | Generic AI copy is easy to spot; the bans and the hook rule push it toward something a good social media manager would write |
 
+## 13. What an audit costs, and how it was cut by 60%
+
+Every AI call logs its token counts (`[usage]` lines in Vercel → Logs), so cost is measured, not guessed.
+
+**Measured on Basecamp, Gemini prices of November 2026:**
+
+| Setup | Cost per audit | From 1 Jan 2027 (Gemini 3.8 Flash price doubles) |
+| --- | --- | --- |
+| All four steps on Gemini 3.8 Flash, default thinking | ~$0.061 | ~$0.12 |
+| All on Gemini 3.1 Flash-Lite | ~$0.012 | ~$0.012 |
+| **Mixed (current)** | **~$0.026** | **~$0.045** |
+
+| Finding / decision | Why |
+| --- | --- |
+| **Hidden "thinking" was the biggest cost**: 6,451 of 10,923 output tokens, billed at the output price | Turning thinking down to "low" on the strong model removed it without hurting the audit or the post |
+| **Flash-Lite for brand voice and the automation plan** | Side by side, it did these as well as Flash at a fifth of the price |
+| **Gemini 3.8 Flash kept for the growth audit and the post** | With Flash-Lite, quote accuracy dropped (5 of 7 verified vs 10 of 10), quick wins became generic ("compress images") and the post used clichés. These are what a reader judges the report by |
+| **Both models are settings** (`GEMINI_MODEL`, `GEMINI_MODEL_FAST`) | A price change or a new model is a config change, not a code change |
+
+**Talking point:** "I measured cost per step before optimising. Most of the bill was the model's hidden reasoning, so I turned that down, and moved the two simplest steps to a model a fifth of the price. Cost dropped about 60% with no visible loss in the parts people read."
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.
 - The private-address check looks at hostnames only and doesn't resolve DNS. That's fine for a demo, but a production system would check the resolved IP too.
 - Some sites block automated requests. The tool then reports which pages failed instead of guessing.
 - Scores are AI judgements, so running the same site twice can move a category by a point. The code checks underneath don't change.
-- Each audit makes four AI calls and sends the website text with each one. Fine at demo scale; at volume, prompt caching or a shared summary would cut the cost.
+- Each audit makes four AI calls and sends the website text with each one (about 27,000 input tokens in total). At volume, explicit caching or one shared summary of the site would cut that further.
 - Visitors are counted by IP address, so people on a shared network (an office, a university) share the 3 free audits, and someone changing networks gets new ones. The site-wide daily cap and the AI provider's monthly spending cap are the real cost protection.
 - PageSpeed tests the homepage only, on mobile. Google's response time varies a lot (18s to over 90s in testing), so the wait is capped at 60 seconds and the audit carries on without speed data if Google is too slow.
 - The company logo comes from its site icon; some sites only provide a white logo, which shows faintly on the grey backdrop.

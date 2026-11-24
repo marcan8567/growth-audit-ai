@@ -1,6 +1,6 @@
 import "server-only";
 import type { z } from "zod";
-import { complete, type ChatTurn } from "./complete";
+import { complete, type ChatTurn, type Tier } from "./complete";
 
 interface StepOptions<T> {
   name: string;
@@ -8,6 +8,8 @@ interface StepOptions<T> {
   user: string;
   schema: z.ZodType<T>;
   maxTokens?: number;
+  /** "fast" (cheap model) or "smart" (stronger model); see complete.ts. */
+  tier: Tier;
 }
 
 /**
@@ -18,11 +20,11 @@ interface StepOptions<T> {
  * 3. If it fails, show the AI the exact problem and ask once more.
  * 4. If it fails again, throw a clear error instead of passing bad data on.
  */
-export async function runJsonStep<T>({ name, system, user, schema, maxTokens = 3_000 }: StepOptions<T>): Promise<T> {
+export async function runJsonStep<T>({ name, system, user, schema, tier, maxTokens = 3_000 }: StepOptions<T>): Promise<T> {
   const messages: ChatTurn[] = [{ role: "user", content: user }];
 
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const { text, truncated } = await complete({ system, messages, maxTokens });
+    const { text, truncated } = await complete({ label: attempt === 1 ? name : `${name} (retry)`, tier, system, messages, maxTokens });
     const parsed = parseJson(text);
     const checked = parsed.ok ? schema.safeParse(parsed.value) : null;
     if (checked?.success) return checked.data;

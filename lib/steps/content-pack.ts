@@ -20,6 +20,7 @@ export async function runContentPack(site: WebsiteData, brandVoice: BrandVoiceRe
     system: CONTENT_PACK_SYSTEM,
     user: contentPackUserPrompt(formatWebsiteForPrompt(site), voice, site.socialLinks.map((s) => s.platform)),
     schema: ContentPackSchema,
+    tier: "smart",
     maxTokens: 2_500,
   });
 }

@@ -22,6 +22,7 @@ export async function runBrandVoice(site: WebsiteData): Promise<BrandVoiceResult
     system: BRAND_VOICE_SYSTEM,
     user: brandVoiceUserPrompt(formatWebsiteForPrompt(site)),
     schema: BrandVoiceSchema,
+    tier: "fast",
     maxTokens: 2_500,
   });
 

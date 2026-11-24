@@ -30,6 +30,7 @@ export async function runGrowthAudit(site: WebsiteData, checks: SiteCheck[]): Pr
     system: GROWTH_AUDIT_SYSTEM,
     user: growthAuditUserPrompt(formatWebsiteForPrompt(site), formatChecksForPrompt(checks)),
     schema: GrowthAuditSchema,
+    tier: "smart",
     maxTokens: 4_000,
   });
 

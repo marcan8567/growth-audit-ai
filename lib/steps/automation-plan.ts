@@ -13,6 +13,7 @@ export async function runAutomationPlan(site: WebsiteData, checks: SiteCheck[]):
     system: AUTOMATION_PLAN_SYSTEM,
     user: automationPlanUserPrompt(formatWebsiteForPrompt(site), formatChecksForPrompt(checks)),
     schema: AutomationPlanSchema,
+    tier: "fast",
     maxTokens: 3_500,
   });
 }
