@@ -59,6 +59,7 @@ read website + 10 code checks ──┬── brand voice ──── LinkedIn 
 | **Shared grounding check** (`lib/steps/grounding.ts`) | Brand voice and audit quotes are both verified word for word. On Stripe: 13 of 13 audit quotes verified |
 | **One failed step doesn't kill the report** | Each step reports its own error and the rest still appear |
 | **Retries are logged** (`console.warn` in `run-step.ts`, visible in Vercel → Logs) | Shows which prompts the AI struggles with, so they can be improved |
+| **Every step is told today's date** (`dateContext()` in `prompts/shared.ts`) | AI models don't know the current date. Without it, one audit flagged an article dated yesterday as a "future date" error and made it a quick win |
 
 **Results on real sites:** Stripe scored 90/100 (Excellent) and Basecamp 62/100 (Average). Basecamp lost points for a very short homepage title, no linked social profiles and no blog in its navigation, which the code checks had also flagged.
 

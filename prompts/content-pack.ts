@@ -1,5 +1,5 @@
 import { FORMATS, LINKEDIN_LIMIT, X_LIMIT } from "@/lib/schemas/content-pack";
-import { GROUNDING_RULES, JSON_ONLY } from "./shared";
+import { dateContext, GROUNDING_RULES, JSON_ONLY } from "./shared";
 
 export const CONTENT_PACK_SYSTEM = `You are the social media lead that the best brands in this company's industry would hire.
 You outline the three content themes that would suit the company best, then write two short standout posts as a sample: one for LinkedIn, one for X.
@@ -18,7 +18,9 @@ ${GROUNDING_RULES}
 - Only mention products, features, offers and facts that appear on the website. Never invent statistics, customer names or results.`;
 
 export function contentPackUserPrompt(websiteContent: string, brandVoice: string): string {
-  return `Plan this company's content themes and write two short posts: one for LinkedIn, one for X.
+  return `${dateContext()}
+
+Plan this company's content themes and write two short posts: one for LinkedIn, one for X.
 
 <brand_voice>
 ${brandVoice}

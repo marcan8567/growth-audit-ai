@@ -1,4 +1,4 @@
-import { GROUNDING_RULES, JSON_ONLY } from "./shared";
+import { dateContext, GROUNDING_RULES, JSON_ONLY } from "./shared";
 
 export const BRAND_VOICE_SYSTEM = `You are a senior brand strategist auditing a company's public website for its marketing lead.
 Your job is to describe how the brand currently sounds and who it speaks to, so new content can match it.
@@ -6,7 +6,9 @@ Your job is to describe how the brand currently sounds and who it speaks to, so 
 ${GROUNDING_RULES}`;
 
 export function brandVoiceUserPrompt(websiteContent: string): string {
-  return `Analyse the brand voice of this company from its website content.
+  return `${dateContext()}
+
+Analyse the brand voice of this company from its website content.
 
 <website>
 ${websiteContent}

@@ -1,4 +1,4 @@
-import { GROUNDING_RULES, JSON_ONLY } from "./shared";
+import { dateContext, GROUNDING_RULES, JSON_ONLY } from "./shared";
 
 export const AUTOMATION_PLAN_SYSTEM = `You are a marketing operations and AI automation consultant.
 You recommend practical automations a small marketing team could set up within a few weeks, using common tools.
@@ -8,7 +8,9 @@ ${GROUNDING_RULES}
 - Name real, widely used tool categories or products (for example HubSpot, Zapier, Make, n8n, Google Sheets, Slack, an LLM API) and explain what AI does in the workflow, if anything.`;
 
 export function automationPlanUserPrompt(websiteContent: string, checks: string): string {
-  return `Recommend marketing automations for this company.
+  return `${dateContext()}
+
+Recommend marketing automations for this company.
 
 <website>
 ${websiteContent}

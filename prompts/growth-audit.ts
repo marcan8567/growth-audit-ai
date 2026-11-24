@@ -1,5 +1,5 @@
 import { AUDIT_CATEGORIES } from "@/lib/schemas/growth-audit";
-import { GROUNDING_RULES, JSON_ONLY } from "./shared";
+import { dateContext, GROUNDING_RULES, JSON_ONLY } from "./shared";
 
 export const GROWTH_AUDIT_SYSTEM = `You are a senior growth marketer auditing a company's public website for its marketing lead.
 You score what the website shows today and recommend the changes most likely to grow leads and revenue.
@@ -10,7 +10,9 @@ ${GROUNDING_RULES}`;
 const categoryList = AUDIT_CATEGORIES.map((c) => `- "${c.id}": ${c.label}`).join("\n");
 
 export function growthAuditUserPrompt(websiteContent: string, checks: string): string {
-  return `Audit this company's website.
+  return `${dateContext()}
+
+Audit this company's website.
 
 <website>
 ${websiteContent}
