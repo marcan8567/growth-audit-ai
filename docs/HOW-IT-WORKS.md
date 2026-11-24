@@ -70,7 +70,7 @@ read website + 10 code checks ──┬── brand voice ──── social me
 | --- | --- |
 | **Upstash Redis** for storage | Serverless functions keep nothing between requests, so reports need an outside store. Upstash works over HTTP, has a free tier and needs no server |
 | **Random 10-character report links** (`/r/ZC9XNQ-AUa`), hidden from search engines, deleted after 6 months | Only people you send a link to can find a report. Redis deletes old ones automatically, so storage never fills up |
-| **Two limits**: 3 free audits per visitor per day, 25 per day for the whole site | The per-visitor limit stops one person using everything up; the site-wide limit caps the AI bill even if the link goes viral. Both are settings (`PUBLIC_AUDITS_PER_VISITOR_PER_DAY`, `PUBLIC_AUDITS_PER_DAY`) |
+| **Two limits**: 3 free audits per visitor per day, 15 per day for the whole site | The per-visitor limit stops one person using everything up; the site-wide limit caps the AI bill even if the link goes viral (15 audits at about 2.6 cents is under €0.40 a day, so the €2 monthly cap can't be used up in a single day). Both are settings (`PUBLIC_AUDITS_PER_VISITOR_PER_DAY`, `PUBLIC_AUDITS_PER_DAY`) |
 | **Access code = no limits** | You can always demo, even when the free quota is used up |
 | **IP addresses are hashed** before counting | The limit works without storing personal data |
 | **The address is checked before the limit** | A typo or a blocked address is refused without using up a free audit |

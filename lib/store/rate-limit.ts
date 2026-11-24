@@ -13,7 +13,7 @@ import { getRedis } from "./redis";
  */
 
 const PER_VISITOR_PER_DAY = numberFromEnv("PUBLIC_AUDITS_PER_VISITOR_PER_DAY", 3);
-const SITE_WIDE_PER_DAY = numberFromEnv("PUBLIC_AUDITS_PER_DAY", 25);
+const SITE_WIDE_PER_DAY = numberFromEnv("PUBLIC_AUDITS_PER_DAY", 15);
 
 // Separate counters for local, preview and production, so testing never uses up the live site's limits.
 const ENVIRONMENT = process.env.VERCEL_ENV ?? "local";
