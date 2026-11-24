@@ -1,0 +1,130 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Logo } from "@/components/logo";
+import { SiteFooter } from "@/components/site-footer";
+import { LEGAL_READY, SITE } from "@/lib/site";
+
+export const metadata: Metadata = { title: "Privacy policy · Growth Audit AI", robots: { index: false } };
+
+/**
+ * Privacy policy (Datenschutzerklärung) under Art. 13 GDPR, describing what the site actually does.
+ * Keep it in sync with the code: any new service, cookie or data field needs a section here.
+ */
+export default function PrivacyPage() {
+  if (!LEGAL_READY) notFound();
+  const { name, street, city, email } = SITE.legal;
+
+  return (
+    <div className="flex min-h-screen flex-col bg-white text-ink">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-20 pt-6">
+        <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
+          <Logo />
+        </Link>
+        <h1 className="mt-10 text-4xl font-bold tracking-tight">Privacy policy</h1>
+        <p className="mt-2 text-ink-soft">Datenschutzerklärung, as of 25 November 2026</p>
+
+        <div className="mt-10 flex flex-col gap-8 leading-relaxed [&_h2]:text-lg [&_h2]:font-semibold [&_p]:mt-2 [&_p]:text-ink-soft [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:text-ink-soft">
+          <section>
+            <h2>1. Who is responsible</h2>
+            <p>
+              {name}, {street}, {city}, Germany. Email: <a href={`mailto:${email}`} className="underline underline-offset-4">{email}</a>
+            </p>
+          </section>
+
+          <section>
+            <h2>2. In short</h2>
+            <ul>
+              <li>No account, no cookies, no tracking profiles, no advertising.</li>
+              <li>An audit reads the public website you enter. You don&apos;t need to give any personal data.</li>
+              <li>Your IP address is processed for hosting and, in pseudonymised form, to enforce the daily limit.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>3. Hosting and server logs</h2>
+            <p>
+              The website is hosted by Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, USA. When you open a page,
+              Vercel processes technical data such as your IP address, the time, the page requested and your browser&apos;s
+              user agent, to deliver the page and keep the service secure. Legal basis: Art. 6(1)(f) GDPR (legitimate
+              interest in a secure, working website). Data is transferred to the USA on the basis of the EU-US Data Privacy
+              Framework and the European Commission&apos;s standard contractual clauses.
+            </p>
+          </section>
+
+          <section>
+            <h2>4. Running an audit</h2>
+            <p>
+              The website address you enter is used to read that website&apos;s public pages. Their content is sent to Google
+              (Google LLC / Google Ireland Ltd.) for analysis with the Gemini API, and the address to Google PageSpeed Insights
+              for speed measurements. This concerns public company content, not data about you. Legal basis: Art. 6(1)(b) and
+              (f) GDPR.
+            </p>
+          </section>
+
+          <section>
+            <h2>5. Saved reports</h2>
+            <p>
+              Each report is stored with Upstash, Inc. (database in the USA) so it can be opened from its link. Reports contain
+              only information from the audited website, not data about the person who ran the audit. Visitors&apos; reports are
+              deleted automatically after six months.
+            </p>
+          </section>
+
+          <section>
+            <h2>6. Daily limit</h2>
+            <p>
+              To limit costs and prevent abuse, each visitor can run three free audits per day. For this, your IP address is
+              converted into a one-way hash (pseudonymised) and counted in the database for up to 24 hours; the IP address itself
+              is not stored. Legal basis: Art. 6(1)(f) GDPR (legitimate interest in preventing abuse).
+            </p>
+          </section>
+
+          <section>
+            <h2>7. Usage statistics</h2>
+            <p>
+              The site counts how often pages are viewed, audits are run and buttons are clicked, as daily totals only. No
+              cookies are used, and no data about individual visitors is stored.
+            </p>
+          </section>
+
+          <section>
+            <h2>8. Company logos and fonts</h2>
+            <p>
+              Company logos are fetched by our server and delivered from our own domain, and the fonts are served from our own
+              server too. Your browser does not contact the audited company&apos;s website or Google Fonts.
+            </p>
+          </section>
+
+          <section>
+            <h2>9. Contact via LinkedIn</h2>
+            <p>
+              &quot;Message me on LinkedIn&quot; buttons link to a LinkedIn profile. LinkedIn&apos;s own privacy policy applies once you
+              open it. When such a button is clicked, a notification naming the audited website (not you) is sent to a private
+              Discord channel (Discord Inc., USA) so the request can be answered.
+            </p>
+          </section>
+
+          <section>
+            <h2>10. Storage in your browser</h2>
+            <p>
+              Only on the private statistics page is the entered access code kept in your browser&apos;s session storage until you
+              close the tab. This is strictly necessary for that page to work (§ 25(2) TDDDG).
+            </p>
+          </section>
+
+          <section>
+            <h2>11. Your rights</h2>
+            <p>
+              You have the right to access, correction, deletion and restriction of processing of your personal data, to data
+              portability, and to object to processing based on Art. 6(1)(f) GDPR (Art. 15–21 GDPR). To exercise them, email
+              the address above. You also have the right to lodge a complaint with a data protection supervisory authority, for
+              example the authority of your federal state.
+            </p>
+          </section>
+        </div>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}

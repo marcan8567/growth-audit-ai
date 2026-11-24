@@ -33,7 +33,13 @@ export function Report({
   /** The saved report's id, sent with button clicks so lead alerts can name the website. */
   reportId?: string | null;
 }) {
-  const { site, checks, speed, brandVoice, audit, automation, contentPack } = data;
+  const { checks, speed, brandVoice, audit, automation, contentPack } = data;
+  // The company logo is loaded through our own server (/api/logo), never directly from the company's
+  // site, so visitors' IP addresses aren't sent to third parties. Until the report is saved, the
+  // company's initial is shown instead.
+  const site = data.site?.brand
+    ? { ...data.site, brand: { ...data.site.brand, iconUrl: data.site.brand.iconUrl && reportId ? `/api/logo/${reportId}` : null } }
+    : data.site;
 
   const sections = [
     audit && site && { id: "overview", label: "Overview" },
@@ -60,6 +66,7 @@ export function Report({
       {brandVoice && <BrandVoice voice={brandVoice} />}
       {contentPack && <Posts pack={contentPack} site={site} reportId={reportId} />}
       {automation && <Automations plan={automation} />}
+      {site && <Disclaimer domain={site.domain} name={site.brand?.name ?? site.domain} />}
 
     </div>
   );
@@ -90,7 +97,7 @@ function Cover({
           <div>
             <p className="text-2xl font-bold leading-tight tracking-tight">{brand.name}</p>
             <p className="text-sm text-ink-soft">
-              Growth audit of {site.domain}, {date}
+              Automated AI analysis of {site.domain}, {date}
             </p>
           </div>
         </div>
@@ -513,6 +520,26 @@ function FlowStep({ kind, label, text, last = false }: { kind: "trigger" | "step
         <span className={kind === "step" ? "text-ink-soft" : ""}>{text}</span>
       </div>
     </li>
+  );
+}
+
+/* ---------- Disclaimer ---------- */
+
+/**
+ * Says what the report is and isn't: an automated AI analysis of public pages, possibly wrong,
+ * not advice, and not endorsed by the company. Also covers the EU AI Act's transparency duty
+ * to make AI-generated text recognisable as such.
+ */
+function Disclaimer({ domain, name }: { domain: string; name: string }) {
+  return (
+    <aside className="border-t border-ink/10 pt-6 text-xs leading-relaxed text-ink-soft">
+      <p className="max-w-[80ch]">
+        This report was generated automatically with AI (Google Gemini), using only the public website of {domain} and
+        Google PageSpeed measurements. It can contain errors and is not professional advice. Growth Audit AI is an
+        independent project and is not affiliated with or endorsed by {name}. Company names and logos belong to their
+        owners and are shown only to identify the website analysed.
+      </p>
+    </aside>
   );
 }
 

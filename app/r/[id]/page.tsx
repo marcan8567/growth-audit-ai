@@ -6,6 +6,7 @@ import { redactReportForVisitor } from "@/lib/report-access";
 import { loadReport } from "@/lib/store/reports";
 import { track } from "@/lib/store/stats";
 import { Logo } from "@/components/logo";
+import { SiteFooter } from "@/components/site-footer";
 
 // A saved report, read from Redis on every visit. Links look like /r/AbC123xYz_.
 export const dynamic = "force-dynamic";
@@ -31,23 +32,26 @@ export default async function SavedReportPage({ params }: Props) {
   await track("report_view");
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-8 px-6 pb-20 pt-6">
-      <header className="flex items-center justify-between gap-4">
-        <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
-          <Logo />
-        </Link>
-        <Link
-          href="/audit"
-          className="shrink-0 rounded-lg bg-ink px-3 py-2 text-xs font-semibold text-white hover:bg-ink/85 sm:px-4 sm:text-sm"
-        >
-          Audit another website
-        </Link>
-      </header>
-      {/* The cover inside the report shows the company, score and date; this heading is for screen readers. */}
-      <h1 className="sr-only">Growth audit of {report.site?.domain ?? "a website"}</h1>
-
-      {/* Visitors' reports hide all but the first quick win; the owner's showcase audits are shown in full. */}
-      <Report data={report.owner ? report : redactReportForVisitor(report)} createdAt={report.createdAt} shareUrl="current" reportId={report.id} />
-    </main>
+    <>
+      <main className="mx-auto flex max-w-4xl flex-col gap-8 px-6 pb-20 pt-6">
+        <header className="flex items-center justify-between gap-4">
+          <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
+            <Logo />
+          </Link>
+          <Link
+            href="/audit"
+            className="shrink-0 rounded-lg bg-ink px-3 py-2 text-xs font-semibold text-white hover:bg-ink/85 sm:px-4 sm:text-sm"
+          >
+            Audit another website
+          </Link>
+        </header>
+        {/* The cover inside the report shows the company, score and date; this heading is for screen readers. */}
+        <h1 className="sr-only">Growth audit of {report.site?.domain ?? "a website"}</h1>
+  
+        {/* Visitors' reports hide all but the first quick win; the owner's showcase audits are shown in full. */}
+        <Report data={report.owner ? report : redactReportForVisitor(report)} createdAt={report.createdAt} shareUrl="current" reportId={report.id} />
+      </main>
+      <SiteFooter />
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { extractBrand } from "./brand";
 import { extractPage, type LinkInfo } from "./extract";
+import { loadRobots } from "./robots";
 import { fetchHtml } from "./fetch-page";
 import type { PageData, PageKind, SocialLink, WebsiteData } from "./types";
 import { normalizeInputUrl, siteKey } from "./url";
@@ -55,6 +56,12 @@ export function pickKeyPages(links: LinkInfo[], homeUrl: string): { kind: PageKi
 export async function readWebsite(input: string): Promise<WebsiteData> {
   const start = normalizeInputUrl(input);
 
+  // Respect the site's robots.txt: don't read a site (or page) that asks automated tools not to.
+  const robots = await loadRobots(start.origin);
+  if (!robots.isAllowed(start.pathname || "/")) {
+    throw new Error(`${start.hostname} asks automated tools not to read it (robots.txt), so it can't be audited.`);
+  }
+
   let homeHtml: string;
   let finalUrl: string;
   try {
@@ -65,7 +72,13 @@ export async function readWebsite(input: string): Promise<WebsiteData> {
   }
 
   const home = extractPage(homeHtml, finalUrl, "home");
-  const keyPages = pickKeyPages(home.internalLinks, finalUrl);
+  // Key pages the site's robots.txt excludes are skipped and listed as not read.
+  const skipped: WebsiteData["failedPages"] = [];
+  const keyPages = pickKeyPages(home.internalLinks, finalUrl).filter(({ kind, url }) => {
+    const allowed = robots.isAllowed(new URL(url).pathname);
+    if (!allowed) skipped.push({ kind, url, error: "Skipped: the site's robots.txt asks automated tools not to read it." });
+    return allowed;
+  });
 
   const results = await Promise.allSettled(
     keyPages.map(async ({ kind, url }) => {
@@ -76,7 +89,7 @@ export async function readWebsite(input: string): Promise<WebsiteData> {
 
   const pages: PageData[] = [home.page];
   const socialLinks: SocialLink[] = [...home.socialLinks];
-  const failedPages: WebsiteData["failedPages"] = [];
+  const failedPages: WebsiteData["failedPages"] = [...skipped];
 
   results.forEach((result, i) => {
     const { kind, url } = keyPages[i];

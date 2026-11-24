@@ -3,6 +3,7 @@ import { SITE } from "@/lib/site";
 import { listRecentAudits, loadReport, type RecentAudit, type SavedReport } from "@/lib/store/reports";
 import { track } from "@/lib/store/stats";
 import { Logo } from "@/components/logo";
+import { SiteFooter } from "@/components/site-footer";
 
 // The sample report is read from Redis on each visit (one small, fast read; well within Upstash's free tier).
 export const dynamic = "force-dynamic";
@@ -146,11 +147,7 @@ export default async function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-mist">
-        <p className="mx-auto max-w-6xl px-6 py-8 text-sm text-ink-soft">
-          Reads public website content only. Shared reports are kept for six months.
-        </p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

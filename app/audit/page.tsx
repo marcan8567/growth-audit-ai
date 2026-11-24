@@ -9,6 +9,7 @@ import type { WebsiteSummary } from "@/lib/reader/format";
 import type { ReportData } from "@/lib/store/reports";
 import { trackClick } from "@/lib/track-client";
 import { Logo } from "@/components/logo";
+import { SiteFooter } from "@/components/site-footer";
 
 type Status = "idle" | "running" | "done" | "error" | "skipped";
 
@@ -123,74 +124,77 @@ export default function AuditPage() {
   const shareUrl = reportId ? `${window.location.origin}/r/${reportId}` : null;
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 pb-20 pt-6">
-      <header>
-        <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
-          <Logo />
-        </Link>
-        <h1 className="mt-6 text-4xl font-bold tracking-tight text-ink">Audit a website</h1>
-        <p className="mt-2 max-w-[62ch] leading-relaxed text-ink-soft">
-          A scored audit, Google speed data, the brand voice, ready-to-post LinkedIn and X posts and an automation plan,
-          built from the company&apos;s own public website. Takes about a minute.
-        </p>
-      </header>
-
-      <form onSubmit={runAudit} className="flex flex-col gap-3 sm:flex-row">
-        <label className="sr-only" htmlFor="audit-url">
-          Company website
-        </label>
-        <div className="flex flex-1 items-center rounded-lg border-2 border-ink bg-white focus-within:ring-4 focus-within:ring-marker">
-          <span className="pl-4 text-ink-soft" aria-hidden="true">
-            https://
-          </span>
+    <>
+      <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 pb-20 pt-6">
+        <header>
+          <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
+            <Logo />
+          </Link>
+          <h1 className="mt-6 text-4xl font-bold tracking-tight text-ink">Audit a website</h1>
+          <p className="mt-2 max-w-[62ch] leading-relaxed text-ink-soft">
+            A scored audit, Google speed data, the brand voice, ready-to-post LinkedIn and X posts and an automation plan,
+            built from the company&apos;s own public website. Takes about a minute.
+          </p>
+        </header>
+  
+        <form onSubmit={runAudit} className="flex flex-col gap-3 sm:flex-row">
+          <label className="sr-only" htmlFor="audit-url">
+            Company website
+          </label>
+          <div className="flex flex-1 items-center rounded-lg border-2 border-ink bg-white focus-within:ring-4 focus-within:ring-marker">
+            <span className="pl-4 text-ink-soft" aria-hidden="true">
+              https://
+            </span>
+            <input
+              id="audit-url"
+              value={url.replace(/^https?:\/\//i, "")}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="company.com"
+              required
+              inputMode="url"
+              className="w-full bg-transparent px-1 py-3 text-lg text-ink outline-none"
+            />
+          </div>
+          <label className="sr-only" htmlFor="audit-code">
+            Access code
+          </label>
           <input
-            id="audit-url"
-            value={url.replace(/^https?:\/\//i, "")}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="company.com"
-            required
-            inputMode="url"
-            className="w-full bg-transparent px-1 py-3 text-lg text-ink outline-none"
+            id="audit-code"
+            value={accessCode}
+            onChange={(e) => setAccessCode(e.target.value)}
+            placeholder="Access code (optional)"
+            type="password"
+            className="rounded-lg border-2 border-ink/20 bg-white px-4 py-3 text-ink outline-none focus:border-ink sm:w-52"
           />
-        </div>
-        <label className="sr-only" htmlFor="audit-code">
-          Access code
-        </label>
-        <input
-          id="audit-code"
-          value={accessCode}
-          onChange={(e) => setAccessCode(e.target.value)}
-          placeholder="Access code (optional)"
-          type="password"
-          className="rounded-lg border-2 border-ink/20 bg-white px-4 py-3 text-ink outline-none focus:border-ink sm:w-52"
-        />
-        <button
-          disabled={busy}
-          className="rounded-lg bg-ink px-6 py-3 text-lg font-semibold text-white hover:bg-ink/85 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker disabled:opacity-60"
-        >
-          {busy ? "Running…" : "Run audit"}
-        </button>
-      </form>
-
-      {startedAt && (
-        <Progress
-          target={target}
-          status={status}
-          timing={timing}
-          notes={stepNotes}
-          busy={busy}
-          startedAt={startedAt}
-          finishedAt={finishedAt}
-          failed={Boolean(error)}
-          shareUrl={shareUrl}
-          reportId={reportId}
-        />
-      )}
-
-      {error && <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
-
-      <Report data={results} shareUrl={shareUrl} reportId={reportId} />
-    </main>
+          <button
+            disabled={busy}
+            className="rounded-lg bg-ink px-6 py-3 text-lg font-semibold text-white hover:bg-ink/85 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker disabled:opacity-60"
+          >
+            {busy ? "Running…" : "Run audit"}
+          </button>
+        </form>
+  
+        {startedAt && (
+          <Progress
+            target={target}
+            status={status}
+            timing={timing}
+            notes={stepNotes}
+            busy={busy}
+            startedAt={startedAt}
+            finishedAt={finishedAt}
+            failed={Boolean(error)}
+            shareUrl={shareUrl}
+            reportId={reportId}
+          />
+        )}
+  
+        {error && <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
+  
+        <Report data={results} shareUrl={shareUrl} reportId={reportId} />
+      </main>
+      <SiteFooter />
+    </>
   );
 }
 

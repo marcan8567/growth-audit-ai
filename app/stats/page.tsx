@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/logo";
+import { SiteFooter } from "@/components/site-footer";
 
 /**
  * Private funnel dashboard. Asks for the access code, then shows the last 30 days.
@@ -49,54 +50,57 @@ export default function StatsPage() {
   }, []);
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 pb-20 pt-6 text-ink">
-      <header className="flex items-center justify-between">
-        <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
-          <Logo />
-        </Link>
-        {stats && (
-          <button type="button" onClick={() => void load(sessionStorage.getItem(CODE_KEY) ?? code)} className="rounded-lg px-3 py-2 text-sm font-medium text-ink-soft hover:bg-mist hover:text-ink">
-            {loading ? "Refreshing…" : "Refresh"}
-          </button>
+    <>
+      <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 pb-20 pt-6 text-ink">
+        <header className="flex items-center justify-between">
+          <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
+            <Logo />
+          </Link>
+          {stats && (
+            <button type="button" onClick={() => void load(sessionStorage.getItem(CODE_KEY) ?? code)} className="rounded-lg px-3 py-2 text-sm font-medium text-ink-soft hover:bg-mist hover:text-ink">
+              {loading ? "Refreshing…" : "Refresh"}
+            </button>
+          )}
+        </header>
+  
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Funnel, last 30 days</h1>
+          <p className="mt-2 max-w-[62ch] text-ink-soft">
+            Visitors only; audits you run with the access code are counted separately. Counts only, no cookies and no personal data.
+          </p>
+        </div>
+  
+        {!stats && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void load(code);
+            }}
+            className="flex max-w-md flex-col gap-3 sm:flex-row"
+          >
+            <label htmlFor="stats-code" className="sr-only">
+              Access code
+            </label>
+            <input
+              id="stats-code"
+              type="password"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Access code"
+              required
+              className="flex-1 rounded-lg border-2 border-ink/20 bg-white px-4 py-3 outline-none focus:border-ink"
+            />
+            <button disabled={loading} className="rounded-lg bg-ink px-5 py-3 font-semibold text-white hover:bg-ink/85 disabled:opacity-60">
+              {loading ? "Loading…" : "Show stats"}
+            </button>
+          </form>
         )}
-      </header>
-
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Funnel, last 30 days</h1>
-        <p className="mt-2 max-w-[62ch] text-ink-soft">
-          Visitors only; audits you run with the access code are counted separately. Counts only, no cookies and no personal data.
-        </p>
-      </div>
-
-      {!stats && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void load(code);
-          }}
-          className="flex max-w-md flex-col gap-3 sm:flex-row"
-        >
-          <label htmlFor="stats-code" className="sr-only">
-            Access code
-          </label>
-          <input
-            id="stats-code"
-            type="password"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Access code"
-            required
-            className="flex-1 rounded-lg border-2 border-ink/20 bg-white px-4 py-3 outline-none focus:border-ink"
-          />
-          <button disabled={loading} className="rounded-lg bg-ink px-5 py-3 font-semibold text-white hover:bg-ink/85 disabled:opacity-60">
-            {loading ? "Loading…" : "Show stats"}
-          </button>
-        </form>
-      )}
-      {error && <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
-
-      {stats && <Dashboard stats={stats} />}
-    </main>
+        {error && <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
+  
+        {stats && <Dashboard stats={stats} />}
+      </main>
+      <SiteFooter />
+    </>
   );
 }
 
