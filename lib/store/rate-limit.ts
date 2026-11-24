@@ -40,11 +40,14 @@ function getLimiters() {
   return limiters;
 }
 
-export type AccessDecision = { allowed: true; remaining?: number } | { allowed: false; status: number; error: string };
+export type AccessDecision =
+  | { allowed: true; /** True when the access code was used: the owner ran this audit. */ owner: boolean; remaining?: number }
+  | { allowed: false; status: number; error: string };
 
 export async function checkAccess(request: Request, accessCode: unknown): Promise<AccessDecision> {
   const expectedCode = process.env.ACCESS_CODE;
-  if (!expectedCode || accessCode === expectedCode) return { allowed: true };
+  if (expectedCode && accessCode === expectedCode) return { allowed: true, owner: true };
+  if (!expectedCode) return { allowed: true, owner: false };
 
   const limit = getLimiters();
   if (!limit) return { allowed: false, status: 401, error: "Wrong or missing access code." };
@@ -67,7 +70,7 @@ export async function checkAccess(request: Request, accessCode: unknown): Promis
     };
   }
 
-  return { allowed: true, remaining: visitor.remaining };
+  return { allowed: true, owner: false, remaining: visitor.remaining };
 }
 
 /**

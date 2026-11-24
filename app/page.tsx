@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
-import { loadReport, type SavedReport } from "@/lib/store/reports";
+import { listRecentAudits, loadReport, type RecentAudit, type SavedReport } from "@/lib/store/reports";
 
 // The sample report is read from Redis on each visit (one small, fast read; well within Upstash's free tier).
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const sample = await loadReport(SITE.sampleReportId).catch(() => null);
+  const [sample, recent] = await Promise.all([
+    loadReport(SITE.sampleReportId).catch(() => null),
+    // Only audits run with the access code are listed; visitors' reports stay private.
+    listRecentAudits(3, [SITE.sampleReportId]).catch(() => [] as RecentAudit[]),
+  ]);
   const sampleHref = `/r/${SITE.sampleReportId}`;
 
   return (
@@ -72,6 +76,8 @@ export default async function Home() {
             {sample ? <SampleScorecard report={sample} href={sampleHref} /> : null}
           </div>
         </section>
+
+        {recent.length > 0 && <RecentAudits audits={recent} />}
 
         {/* What the report contains. Not a sequence, so no numbers. */}
         <section className="bg-mist">
@@ -143,6 +149,45 @@ export default async function Home() {
       </footer>
     </div>
   );
+}
+
+/** The newest audits run with the access code, each linking to its full report. */
+function RecentAudits({ audits }: { audits: RecentAudit[] }) {
+  return (
+    <section className="mx-auto max-w-6xl px-6 pb-20">
+      <h2 className="text-2xl font-bold tracking-tight">Recent audits</h2>
+      <ul className="mt-6 grid gap-4 sm:grid-cols-3">
+        {audits.map((a) => (
+          <li key={a.id}>
+            <Link
+              href={`/r/${a.id}`}
+              className="group block rounded-xl border border-ink/15 p-5 hover:border-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
+            >
+              <p className="truncate text-lg font-semibold group-hover:underline">{a.domain}</p>
+              <p className="mt-3">
+                <span className={`text-4xl font-bold tracking-tight ${scoreText(a.score / 10)}`}>{a.score}</span>
+                <span className="text-ink-soft">/100</span>
+              </p>
+              <p className="mt-1 text-sm text-ink-soft">
+                {a.grade}, {timeAgo(a.createdAt)}
+              </p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** "2 hours ago", "yesterday", "3 days ago", or the date for anything older than a month. */
+function timeAgo(iso: string): string {
+  const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (minutes < 60) return minutes <= 1 ? "just now" : `${minutes} minutes ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return hours === 1 ? "an hour ago" : `${hours} hours ago`;
+  const days = Math.round(hours / 24);
+  if (days < 30) return days === 1 ? "yesterday" : `${days} days ago`;
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 }
 
 /** A real saved report, shown as a printed scorecard with the key finding marked in highlighter. */

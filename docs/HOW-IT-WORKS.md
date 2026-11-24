@@ -117,6 +117,19 @@ The report used to include a 14-day content pack. It now gives **one** ready-to-
 
 **Talking point:** "The tool is also my own funnel: every report a stranger runs ends with a reason to message me."
 
+## 11. Recent audits on the homepage
+
+The homepage shows the three newest audits as boxes (website, score, grade, how long ago), each linking to its full report.
+
+| Decision | Why |
+| --- | --- |
+| **Only audits run with the access code are listed** | Visitors were promised that only people with the link see their report. Listing everyone's audits would break that, and anyone could put an embarrassing domain on the homepage right before an interview |
+| **Listed reports never expire** | A box never leads to a missing page |
+| **One box per website, newest first; the homepage sample is left out** | No duplicates, and the boxes stay varied |
+| **A separate list for local, preview and production** | Local test runs never appear on the live homepage |
+
+**Tip:** before an interview, run the company's website with your access code. It then appears on your homepage as a recent audit, and you can send them the report link.
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.

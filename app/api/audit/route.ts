@@ -120,7 +120,7 @@ export async function POST(request: Request) {
         // 4. Save the report so it gets its own link. Skipped if the visitor left or nothing useful came back.
         if (!disconnected() && (report.audit || report.brandVoice)) {
           try {
-            const id = await saveReport(report);
+            const id = await saveReport(report, { owner: access.owner });
             if (id) send({ type: "saved", id });
           } catch (err) {
             console.error("[audit] saving the report failed:", err); // the report is still on screen
