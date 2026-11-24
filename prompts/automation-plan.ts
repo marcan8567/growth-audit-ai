@@ -37,5 +37,5 @@ ${JSON_ONLY}
   ]
 }
 
-Give 4 to 6 automations, most valuable first.`;
+Give exactly 3 automations: the three most valuable for this company, most valuable first.`;
 }

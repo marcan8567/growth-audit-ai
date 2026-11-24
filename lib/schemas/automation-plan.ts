@@ -18,8 +18,7 @@ export const AutomationPlanSchema = z.object({
         impact: Level,
       }),
     )
-    .min(4)
-    .max(6),
+    .length(3), // only the three most valuable, so the plan stays focused
 });
 
 export type AutomationPlan = z.infer<typeof AutomationPlanSchema>;

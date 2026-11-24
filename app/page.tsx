@@ -258,7 +258,7 @@ const COVERS = [
   },
   {
     term: "Automation plan",
-    text: "Four to six marketing workflows with what starts them, the steps, the tools and where AI helps.",
+    text: "The three marketing workflows most worth automating, with what starts them, the steps, the tools and where AI helps.",
   },
   {
     term: "A link to share",

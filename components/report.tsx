@@ -285,7 +285,8 @@ function Automations({ plan }: { plan: AutomationPlan }) {
   return (
     <Section title="Automation plan" subtitle={plan.summary}>
       <ol className="flex flex-col gap-3">
-        {plan.automations.map((a, i) => (
+        {/* Older reports have 4–6 automations; the first three are the most valuable. */}
+        {plan.automations.slice(0, 3).map((a, i) => (
           <li key={i} className="rounded-lg border border-stone-200 bg-white p-4 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">

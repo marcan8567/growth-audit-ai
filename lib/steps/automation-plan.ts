@@ -14,6 +14,6 @@ export async function runAutomationPlan(site: WebsiteData, checks: SiteCheck[]):
     user: automationPlanUserPrompt(formatWebsiteForPrompt(site), formatChecksForPrompt(checks)),
     schema: AutomationPlanSchema,
     tier: "fast",
-    maxTokens: 3_500,
+    maxTokens: 2_500,
   });
 }
