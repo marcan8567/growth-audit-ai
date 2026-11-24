@@ -21,12 +21,10 @@ import type { ReportData } from "@/lib/store/reports";
  */
 export function Report({
   data,
-  showRawData = false,
   createdAt,
   shareUrl,
 }: {
   data: ReportData;
-  showRawData?: boolean;
   createdAt?: string;
   /** The link the Share button copies; "current" copies the page's own address. */
   shareUrl?: string | null;
@@ -44,7 +42,7 @@ export function Report({
     automation && { id: "automations", label: "Automations" },
   ].filter(Boolean) as { id: string; label: string }[];
 
-  if (!sections.length && !showRawData) return null;
+  if (!sections.length) return null;
 
   return (
     <div className="flex flex-col gap-14 text-ink">
@@ -59,13 +57,6 @@ export function Report({
       {contentPack && <Posts pack={contentPack} site={site} />}
       {automation && <Automations plan={automation} />}
 
-      {showRawData && Object.keys(data).length > 0 && (
-        <Section id="raw" title="Raw data" subtitle="The exact JSON each step returned. Only you see this.">
-          {Object.entries(data).map(([key, value]) => (
-            <JsonBlock key={key} label={key} value={value} />
-          ))}
-        </Section>
-      )}
     </div>
   );
 }
@@ -681,15 +672,6 @@ export function CopyButton({
     >
       {copied ? copiedLabel : label}
     </button>
-  );
-}
-
-function JsonBlock({ label, value }: { label: string; value: unknown }) {
-  return (
-    <details className="rounded-lg border border-ink/10 bg-white">
-      <summary className="cursor-pointer px-4 py-2 text-sm font-medium">{label}</summary>
-      <pre className="max-h-[32rem] overflow-auto border-t border-ink/10 p-4 text-xs leading-relaxed">{JSON.stringify(value, null, 2)}</pre>
-    </details>
   );
 }
 

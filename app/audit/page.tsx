@@ -186,8 +186,7 @@ export default function AuditPage() {
 
       {error && <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
 
-      {/* Raw data only for the owner (an audit only runs with a code if the code is right). */}
-      <Report data={results} showRawData={Boolean(accessCode)} shareUrl={shareUrl} />
+      <Report data={results} shareUrl={shareUrl} />
     </main>
   );
 }

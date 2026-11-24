@@ -190,7 +190,6 @@ The report reads like a consultant's deliverable: the overview first, the detail
 | **Speed as rings**, like Google's own PageSpeed report | Marketers already know how to read them |
 | **Automations as a flow**: Trigger → steps → Result | Shows how the workflow runs, not just a list of words |
 | **"Why each score" folds open per area** | Detail and quotes stay available without crowding the page |
-| **Raw data only for the owner** | Visitors see a clean report; the JSON is a debugging tool |
 
 ## Known limits (honest answers if asked)
 
