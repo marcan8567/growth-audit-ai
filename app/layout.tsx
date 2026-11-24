@@ -5,7 +5,14 @@ import "./globals.css";
 // One type family for the whole product: a sturdy grotesk with some character, made for reading reports.
 const schibsted = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-schibsted", display: "swap" });
 
+// The site's own address, so link previews get absolute image URLs. Vercel sets VERCEL_PROJECT_PRODUCTION_URL.
+const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  twitter: { card: "summary_large_image" },
   title: "Growth Audit AI: a growth audit from any company website",
   description:
     "Paste a company website and get a scored growth audit, Google speed data, the brand voice, ready-to-post LinkedIn and X posts and an automation plan in about a minute.",

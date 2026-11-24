@@ -191,6 +191,19 @@ The report reads like a consultant's deliverable: the overview first, the detail
 | **Automations as a flow**: Trigger → steps → Result | Shows how the workflow runs, not just a list of words |
 | **"Why each score" folds open per area** | Detail and quotes stay available without crowding the page |
 
+## 16. Growth loop: preview cards, funnel tracking, lead alerts
+
+| Part | How | Why |
+| --- | --- | --- |
+| **Preview card for every report link** (`app/r/[id]/opengraph-image.tsx`) | A 1200×630 image generated on request: company, score ring, grade and the biggest opportunity, in the site's font | Every shared report becomes an ad for the tool on LinkedIn, Slack, WhatsApp and X |
+| **Funnel tracking** (`lib/store/stats.ts`) | One counter per event per day in Redis: homepage visits → audits started → completed → report views → link copies → LinkedIn clicks | "I measure my own funnel." No cookies, no IP addresses, no personal data; the owner's audits are counted separately so they don't distort it |
+| **Private dashboard** (`/stats`, access code) | Headline numbers, the funnel with step-to-step conversion, and a day-by-day table | Shows which offer converts (quick wins vs content plan) and where visitors drop off |
+| **Lead alerts** (`lib/notify.ts`) | A click on a "Message me on LinkedIn" button posts the website and the offer to a Slack or Discord webhook; capped at 30 a day | A small real automation: I know a lead is coming, and which report they saw, before they message me |
+| **Button clicks sent with `sendBeacon`** | Delivered even though the click opens LinkedIn in a new tab | Otherwise many clicks would be lost |
+| **The website name in an alert comes from the saved report**, not from the browser | | A visitor can't fake which company the alert is about |
+
+**Talking point:** "The tool runs its own growth loop: shared reports advertise it, a funnel shows what converts, and a lead alert tells me who's interested, all without cookies or personal data."
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.
@@ -201,4 +214,5 @@ The report reads like a consultant's deliverable: the overview first, the detail
 - Visitors are counted by IP address, so people on a shared network (an office, a university) share the 3 free audits, and someone changing networks gets new ones. The site-wide daily cap and the AI provider's monthly spending cap are the real cost protection.
 - PageSpeed tests the homepage only, on mobile. Google's response time varies a lot (18s to over 90s in testing), so the wait is capped at 60 seconds and the audit carries on without speed data if Google is too slow.
 - The company logo comes from its site icon; some sites only provide a white logo, which shows faintly on the grey backdrop.
+- The funnel counts page loads, so bots and link-preview crawlers add some homepage visits and report views. It shows trends, not exact people.
 - The calls-to-action list sometimes includes navigation links styled as buttons (for example "Product"), so the CTA count is a rough signal, not an exact one.

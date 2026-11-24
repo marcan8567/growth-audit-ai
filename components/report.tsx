@@ -10,6 +10,7 @@ import type { BrandVoiceResult } from "@/lib/steps/brand-voice";
 import type { GrowthAuditResult } from "@/lib/steps/growth-audit";
 import { postText, SocialPostPreview } from "@/components/social-post";
 import { SITE } from "@/lib/site";
+import { trackClick } from "@/lib/track-client";
 import type { ReportData } from "@/lib/store/reports";
 
 /**
@@ -23,11 +24,14 @@ export function Report({
   data,
   createdAt,
   shareUrl,
+  reportId,
 }: {
   data: ReportData;
   createdAt?: string;
   /** The link the Share button copies; "current" copies the page's own address. */
   shareUrl?: string | null;
+  /** The saved report's id, sent with button clicks so lead alerts can name the website. */
+  reportId?: string | null;
 }) {
   const { site, checks, speed, brandVoice, audit, automation, contentPack } = data;
 
@@ -46,15 +50,15 @@ export function Report({
 
   return (
     <div className="flex flex-col gap-14 text-ink">
-      {audit && site && <Cover audit={audit} site={site} createdAt={createdAt} shareUrl={shareUrl} />}
+      {audit && site && <Cover audit={audit} site={site} createdAt={createdAt} shareUrl={shareUrl} reportId={reportId} />}
       {sections.length > 2 && <SectionMenu sections={sections} />}
       {audit && <ScoreGrid audit={audit} />}
-      {audit && <QuickWins audit={audit} domain={site?.domain} />}
+      {audit && <QuickWins audit={audit} domain={site?.domain} reportId={reportId} />}
       {checks && site && <Checks checks={checks} site={site} />}
       {speed && <Speed speed={speed} />}
       {audit && <ScoreDetails audit={audit} />}
       {brandVoice && <BrandVoice voice={brandVoice} />}
-      {contentPack && <Posts pack={contentPack} site={site} />}
+      {contentPack && <Posts pack={contentPack} site={site} reportId={reportId} />}
       {automation && <Automations plan={automation} />}
 
     </div>
@@ -68,11 +72,13 @@ function Cover({
   site,
   createdAt,
   shareUrl,
+  reportId,
 }: {
   audit: GrowthAuditResult;
   site: WebsiteSummary;
   createdAt?: string;
   shareUrl?: string | null;
+  reportId?: string | null;
 }) {
   const brand = site.brand ?? { name: nameFromDomain(site.domain), iconUrl: null, color: null };
   const date = new Date(createdAt ?? Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
@@ -94,6 +100,7 @@ function Cover({
             label="Share report"
             className="rounded-lg border-2 border-ink px-4 py-2 text-sm font-semibold hover:bg-ink hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
             copiedLabel="Link copied"
+            onCopy={() => trackClick("link_copy", reportId)}
           />
         )}
       </div>
@@ -230,7 +237,7 @@ function ScoreDetails({ audit }: { audit: GrowthAuditResult }) {
 
 /* ---------- Quick wins ---------- */
 
-function QuickWins({ audit, domain }: { audit: GrowthAuditResult; domain?: string }) {
+function QuickWins({ audit, domain, reportId }: { audit: GrowthAuditResult; domain?: string; reportId?: string | null }) {
   return (
     <Section id="quick-wins" title="Quick wins" subtitle="The changes most likely to grow leads and revenue, best first.">
       <ol className="flex flex-col gap-3">
@@ -248,7 +255,9 @@ function QuickWins({ audit, domain }: { audit: GrowthAuditResult; domain?: strin
             </div>
           </li>
         ))}
-        {audit.hiddenQuickWins ? <HiddenQuickWins count={audit.hiddenQuickWins} start={audit.quickWins.length + 1} domain={domain} /> : null}
+        {audit.hiddenQuickWins ? (
+          <HiddenQuickWins count={audit.hiddenQuickWins} start={audit.quickWins.length + 1} domain={domain} reportId={reportId} />
+        ) : null}
       </ol>
     </Section>
   );
@@ -258,7 +267,7 @@ function QuickWins({ audit, domain }: { audit: GrowthAuditResult; domain?: strin
  * The quick wins a visitor doesn't see: blurred placeholder cards (the real text never reaches the
  * browser, see lib/report-access.ts) with an offer to send the full list and help put it in place.
  */
-function HiddenQuickWins({ count, start, domain }: { count: number; start: number; domain?: string }) {
+function HiddenQuickWins({ count, start, domain, reportId }: { count: number; start: number; domain?: string; reportId?: string | null }) {
   return (
     <li className="relative">
       <div aria-hidden="true" className="pointer-events-none flex select-none flex-col gap-3 blur-[5px]">
@@ -282,7 +291,7 @@ function HiddenQuickWins({ count, start, domain }: { count: number; start: numbe
           <p className="mt-1.5 text-sm leading-relaxed text-white/80">
             Message me on LinkedIn and I&apos;ll send you the full list, and help you put the fixes in place.
           </p>
-          {SITE.linkedinUrl && <LinkedInButton className="mt-3 px-4 py-2 text-sm" />}
+          {SITE.linkedinUrl && <LinkedInButton className="mt-3 px-4 py-2 text-sm" onClick={() => trackClick("cta_quickwins", reportId)} />}
         </div>
       </div>
     </li>
@@ -402,7 +411,7 @@ function BrandVoice({ voice }: { voice: BrandVoiceResult }) {
 
 /* ---------- Posts ---------- */
 
-function Posts({ pack, site }: { pack: ContentPack; site?: WebsiteSummary }) {
+function Posts({ pack, site, reportId }: { pack: ContentPack; site?: WebsiteSummary; reportId?: string | null }) {
   // New reports have a LinkedIn and an X post. Older ones have one or 14; at most two are shown.
   const posts = pack.posts.slice(0, 2);
   if (!posts.length) return null;
@@ -438,7 +447,7 @@ function Posts({ pack, site }: { pack: ContentPack; site?: WebsiteSummary }) {
             Two weeks of posts like these, built on the three themes that suit the company best:{" "}
             {pack.pillars.map((p) => p.name).join(", ")}. Send me a message and I&apos;ll put it together.
           </p>
-          <LinkedInButton className="mt-4 px-5 py-2.5" />
+          <LinkedInButton className="mt-4 px-5 py-2.5" onClick={() => trackClick("cta_contentplan", reportId)} />
         </div>
       )}
     </Section>
@@ -626,10 +635,11 @@ function levelTone(level: string, kind: "impact" | "effort"): string {
   return good ? "bg-emerald-50 text-emerald-900" : bad ? "bg-amber-50 text-amber-900" : "bg-mist text-ink";
 }
 
-function LinkedInButton({ className = "" }: { className?: string }) {
+function LinkedInButton({ className = "", onClick }: { className?: string; onClick?: () => void }) {
   return (
     <a
       href={SITE.linkedinUrl}
+      onClick={onClick}
       target="_blank"
       rel="noreferrer"
       className={`inline-block rounded-lg bg-white font-semibold text-ink hover:bg-marker focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker ${className}`}
@@ -652,11 +662,13 @@ export function CopyButton({
   label,
   className,
   copiedLabel = "Copied",
+  onCopy,
 }: {
   text: string;
   label: string;
   className?: string;
   copiedLabel?: string;
+  onCopy?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   return (
@@ -664,6 +676,7 @@ export function CopyButton({
       type="button"
       onClick={() => {
         navigator.clipboard.writeText(text).then(() => {
+          onCopy?.();
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);
         });

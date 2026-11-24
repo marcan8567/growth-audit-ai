@@ -19,6 +19,8 @@ Enter any company URL and get a scored growth audit, Google speed data, a brand 
 
 Anyone can run 3 free audits a day (15 a day across the whole site). The access code removes the limits.
 
+Shared report links show a preview card with the company and its score. A private dashboard at `/stats` (access code) shows the funnel: homepage visits, audits, report views and LinkedIn clicks. Clicks on the LinkedIn offers can also post an alert to Slack or Discord.
+
 Every AI answer must match a Zod schema. If it doesn't, the AI is told the exact problem and asked once more. A grounding check then confirms that each quote really appears on the website. If one step fails, the rest of the report still appears.
 
 ## Tech stack

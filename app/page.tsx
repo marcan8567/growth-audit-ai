@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
 import { listRecentAudits, loadReport, type RecentAudit, type SavedReport } from "@/lib/store/reports";
+import { track } from "@/lib/store/stats";
 
 // The sample report is read from Redis on each visit (one small, fast read; well within Upstash's free tier).
 export const dynamic = "force-dynamic";
@@ -10,6 +11,8 @@ export default async function Home() {
     loadReport(SITE.sampleReportId).catch(() => null),
     // Only audits run with the access code are listed; visitors' reports stay private.
     listRecentAudits(3, [SITE.sampleReportId]).catch(() => [] as RecentAudit[]),
+    // Funnel count, done alongside so it doesn't slow the page down.
+    track("home_view"),
   ]);
   const sampleHref = `/r/${SITE.sampleReportId}`;
 

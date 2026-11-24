@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Report } from "@/components/report";
 import { redactReportForVisitor } from "@/lib/report-access";
 import { loadReport } from "@/lib/store/reports";
+import { track } from "@/lib/store/stats";
 
 // A saved report, read from Redis on every visit. Links look like /r/AbC123xYz_.
 export const dynamic = "force-dynamic";
@@ -19,12 +20,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${domain} growth audit${score} · Growth Audit AI`,
     description: report.audit?.summary ?? "A growth audit built from the company's own public website.",
     robots: { index: false }, // reports are private-by-link, so keep them out of search engines
+    twitter: { card: "summary_large_image" },
   };
 }
 
 export default async function SavedReportPage({ params }: Props) {
   const report = await loadReport((await params).id);
   if (!report) notFound();
+  await track("report_view");
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-8 px-6 pb-20 pt-6">
@@ -43,7 +46,7 @@ export default async function SavedReportPage({ params }: Props) {
       <h1 className="sr-only">Growth audit of {report.site?.domain ?? "a website"}</h1>
 
       {/* Visitors' reports hide all but the first quick win; the owner's showcase audits are shown in full. */}
-      <Report data={report.owner ? report : redactReportForVisitor(report)} createdAt={report.createdAt} shareUrl="current" />
+      <Report data={report.owner ? report : redactReportForVisitor(report)} createdAt={report.createdAt} shareUrl="current" reportId={report.id} />
     </main>
   );
 }

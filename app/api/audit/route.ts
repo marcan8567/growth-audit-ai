@@ -11,6 +11,7 @@ import { runGrowthAudit, type GrowthAuditResult } from "@/lib/steps/growth-audit
 import { redactAuditForVisitor } from "@/lib/report-access";
 import { checkAccess } from "@/lib/store/rate-limit";
 import { saveReport, type ReportData } from "@/lib/store/reports";
+import { track } from "@/lib/store/stats";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,6 +52,8 @@ export async function POST(request: Request) {
   if (!access.allowed) return Response.json({ error: access.error }, { status: access.status });
   // True when the access code was used: the owner sees everything and the audit is listed on the homepage.
   const owner = access.owner;
+  // Funnel count; the owner's own audits are kept separate so they don't distort it.
+  await track(owner ? "owner_audit" : "audit_started");
 
   // Collected as the steps finish, then saved so the report gets its own link.
   const report: ReportData = {};
@@ -127,6 +130,7 @@ export async function POST(request: Request) {
           try {
             const id = await saveReport(report, { owner });
             if (id) send({ type: "saved", id });
+            if (id && !owner) await track("audit_completed");
           } catch (err) {
             console.error("[audit] saving the report failed:", err); // the report is still on screen
           }

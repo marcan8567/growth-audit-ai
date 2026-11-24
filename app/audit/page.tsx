@@ -7,6 +7,7 @@ import type { ProgressEvent, StepId } from "@/lib/events";
 import type { SiteCheck } from "@/lib/reader/checks";
 import type { WebsiteSummary } from "@/lib/reader/format";
 import type { ReportData } from "@/lib/store/reports";
+import { trackClick } from "@/lib/track-client";
 
 type Status = "idle" | "running" | "done" | "error" | "skipped";
 
@@ -181,12 +182,13 @@ export default function AuditPage() {
           finishedAt={finishedAt}
           failed={Boolean(error)}
           shareUrl={shareUrl}
+          reportId={reportId}
         />
       )}
 
       {error && <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
 
-      <Report data={results} shareUrl={shareUrl} />
+      <Report data={results} shareUrl={shareUrl} reportId={reportId} />
     </main>
   );
 }
@@ -203,6 +205,7 @@ function Progress({
   finishedAt,
   failed,
   shareUrl,
+  reportId,
 }: {
   target: string | null;
   status: Record<StepId, Status>;
@@ -213,6 +216,7 @@ function Progress({
   finishedAt: number | null;
   failed: boolean;
   shareUrl: string | null;
+  reportId: string | null;
 }) {
   const [now, setNow] = useState(Date.now());
   const [showSteps, setShowSteps] = useState(false);
@@ -253,6 +257,7 @@ function Progress({
               text={shareUrl}
               label="Copy report link"
               copiedLabel="Link copied"
+              onCopy={() => trackClick("link_copy", reportId)}
               className="rounded-lg bg-ink px-3.5 py-2 text-sm font-semibold text-white hover:bg-ink/85"
             />
           )}
