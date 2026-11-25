@@ -9,18 +9,20 @@ export const SITE = {
   sampleReportId: process.env.SAMPLE_REPORT_ID || "FEohezETg8",
 
   /**
-   * Details for the Impressum (§ 5 DDG) and the privacy policy. The two pages and their footer links
-   * only appear once street, city and email are filled in, so an incomplete notice is never published.
-   * The address must be one where post can be delivered and legal documents served (a c/o address
-   * service is common for people who don't want to publish their home address).
+   * Details for the legal notice (Aviso legal, Art. 10 LSSI-CE) and the privacy policy, under Spanish law.
+   * The two pages and their footer links only appear once street, city and email are filled in, so an
+   * incomplete notice is never published. The address must be one where post and legal documents can be delivered.
    */
   legal: {
     name: "Marc Cantacuzene",
-    street: "",
-    city: "", // postcode and town, e.g. "10115 Berlin"
+    street: "Plaza de Miquel Dolç 5",
+    city: "07008 Palma de Mallorca", // postcode and town
+    country: { local: "España", english: "Spain" },
     email: "",
+    /** NIF or NIE: expected by LSSI-CE for anyone offering services online. Shown when filled in. */
+    taxId: "Z0773325R",
   },
 };
 
-/** True when the legal details are complete, so the Impressum and privacy policy can be shown. */
+/** True when the legal details are complete, so the legal notice and privacy policy can be shown. */
 export const LEGAL_READY = Boolean(SITE.legal.street && SITE.legal.city && SITE.legal.email);

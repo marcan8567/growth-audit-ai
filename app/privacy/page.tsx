@@ -5,30 +5,31 @@ import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { LEGAL_READY, SITE } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Privacy policy · Growth Audit AI", robots: { index: false } };
+export const metadata: Metadata = { title: "Privacy policy (Política de privacidad) · Growth Audit AI", robots: { index: false } };
 
 /**
- * Privacy policy (Datenschutzerklärung) under Art. 13 GDPR, describing what the site actually does.
- * Keep it in sync with the code: any new service, cookie or data field needs a section here.
+ * Privacy policy under Art. 13 GDPR and Spain's Ley Orgánica 3/2018 (LOPDGDD), describing what the
+ * site actually does. Keep it in sync with the code: any new service, cookie or data field needs a section here.
  */
 export default function PrivacyPage() {
   if (!LEGAL_READY) notFound();
-  const { name, street, city, email } = SITE.legal;
+  const { name, street, city, country, email } = SITE.legal;
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-ink">
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-20 pt-6">
+    <>
+      <main className="mx-auto w-full max-w-3xl px-6 pb-20 pt-6 text-ink">
         <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
           <Logo />
         </Link>
         <h1 className="mt-10 text-4xl font-bold tracking-tight">Privacy policy</h1>
-        <p className="mt-2 text-ink-soft">Datenschutzerklärung, as of 25 November 2026</p>
+        <p className="mt-2 text-ink-soft">Política de privacidad, as of 25 November 2026</p>
 
         <div className="mt-10 flex flex-col gap-8 leading-relaxed [&_h2]:text-lg [&_h2]:font-semibold [&_p]:mt-2 [&_p]:text-ink-soft [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:text-ink-soft">
           <section>
-            <h2>1. Who is responsible</h2>
+            <h2>1. Who is responsible (Responsable del tratamiento)</h2>
             <p>
-              {name}, {street}, {city}, Germany. Email: <a href={`mailto:${email}`} className="underline underline-offset-4">{email}</a>
+              {name}, {street}, {city}, {country.english}. Email:{" "}
+              <a href={`mailto:${email}`} className="underline underline-offset-4">{email}</a>
             </p>
           </section>
 
@@ -108,23 +109,24 @@ export default function PrivacyPage() {
           <section>
             <h2>10. Storage in your browser</h2>
             <p>
-              Only on the private statistics page is the entered access code kept in your browser&apos;s session storage until you
-              close the tab. This is strictly necessary for that page to work (§ 25(2) TDDDG).
+              The site sets no cookies. Only on the private statistics page is the entered access code kept in your
+              browser&apos;s session storage until you close the tab; this is strictly necessary for that page to work and
+              exempt from consent (Art. 22.2 LSSI-CE).
             </p>
           </section>
 
           <section>
             <h2>11. Your rights</h2>
             <p>
-              You have the right to access, correction, deletion and restriction of processing of your personal data, to data
-              portability, and to object to processing based on Art. 6(1)(f) GDPR (Art. 15–21 GDPR). To exercise them, email
-              the address above. You also have the right to lodge a complaint with a data protection supervisory authority, for
-              example the authority of your federal state.
+              Under the GDPR and the LOPDGDD you have the right to access, rectification, erasure, restriction of processing,
+              data portability, and to object to processing based on Art. 6(1)(f) GDPR (Art. 15–21 GDPR). To exercise them,
+              email the address above. You can also lodge a complaint with the Spanish Data Protection Agency (Agencia Española
+              de Protección de Datos, www.aepd.es) or the supervisory authority of the EU country where you live.
             </p>
           </section>
         </div>
       </main>
       <SiteFooter />
-    </div>
+    </>
   );
 }

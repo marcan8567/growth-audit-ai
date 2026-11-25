@@ -9,10 +9,10 @@ export function SiteFooter() {
         <p>Reads public website content only. No cookies. Shared reports are kept for six months.</p>
         {LEGAL_READY && (
           <nav aria-label="Legal" className="flex gap-5">
-            <Link href="/impressum" className="hover:text-ink hover:underline">
-              Impressum
+            <Link href="/legal-notice" className="hover:text-ink hover:underline">
+              Legal notice
             </Link>
-            <Link href="/datenschutz" className="hover:text-ink hover:underline">
+            <Link href="/privacy" className="hover:text-ink hover:underline">
               Privacy policy
             </Link>
           </nav>

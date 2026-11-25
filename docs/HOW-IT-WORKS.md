@@ -205,13 +205,13 @@ The report reads like a consultant's deliverable: the overview first, the detail
 
 **Talking point:** "The tool runs its own growth loop: shared reports advertise it, a funnel shows what converts, and a lead alert tells me who's interested, all without cookies or personal data."
 
-## 17. Legal basics for Germany
+## 17. Legal basics (Spanish law)
 
 | Part | Why |
 | --- | --- |
-| **Impressum** (`/impressum`, § 5 DDG) and **privacy policy** (`/datenschutz`, Art. 13 GDPR) | Required for a German site that offers services and generates leads. Both only go live once the details in `lib/site.ts` are complete, so an incomplete notice is never published |
+| **Legal notice** (`/legal-notice`, Aviso legal under Art. 10 LSSI-CE) and **privacy policy** (`/privacy`, Art. 13 GDPR and LOPDGDD) | Required for a site that offers services and generates leads. Both only go live once the details in `lib/site.ts` are complete, so an incomplete notice is never published |
 | **The privacy policy describes what the code really does**: Vercel hosting, Upstash storage, Gemini and PageSpeed, hashed IPs for the daily limit, no cookies | A generic template would be wrong in the details; this one has to be updated whenever a new service is added |
-| **Company logos are served through our own server** (`/api/logo/<report>`) | Visitors' browsers never contact third-party sites, so their IP addresses aren't shared (the issue German courts fined websites for with Google Fonts). Only the logo saved with a report can be fetched, so the route can't be abused to make the server call arbitrary addresses |
+| **Company logos are served through our own server** (`/api/logo/<report>`) | Visitors' browsers never contact third-party sites, so their IP addresses aren't shared (the issue German courts fined websites for with Google Fonts, and a GDPR concern across the EU). Only the logo saved with a report can be fetched, so the route can't be abused to make the server call arbitrary addresses |
 | **robots.txt is respected** (`lib/reader/robots.ts`) | Sites that ask automated tools not to read them aren't audited; excluded pages are skipped |
 | **A disclaimer on every report** | Automated AI analysis, may contain errors, not advice, not affiliated with the company. Also covers the EU AI Act's rule that AI-generated text must be recognisable as such |
 
