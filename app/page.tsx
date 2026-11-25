@@ -227,10 +227,10 @@ function SampleScorecard({ report, href }: { report: SavedReport; href: string }
       </ul>
 
       <blockquote className="mt-7 border-t border-mist pt-5">
-        <p className="text-sm font-semibold">Biggest opportunity</p>
-        <p className="mt-1.5 leading-relaxed">
-          <span className="marker">{audit.biggestOpportunity}</span>
-        </p>
+        <div className="border-l-4 border-marker pl-4">
+          <p className="text-sm font-semibold">Biggest opportunity</p>
+          <p className="mt-1.5 font-medium leading-relaxed">{audit.biggestOpportunity}</p>
+        </div>
       </blockquote>
 
       <Link href={href} className="mt-6 inline-block font-semibold underline underline-offset-4 hover:no-underline">

@@ -122,10 +122,10 @@ function Cover({
         </div>
         <div>
           <p className="max-w-[62ch] leading-relaxed">{audit.summary}</p>
-          <p className="mt-4 text-sm font-semibold">Biggest opportunity</p>
-          <p className="mt-1 max-w-[62ch] leading-relaxed">
-            <span className="marker">{audit.biggestOpportunity}</span>
-          </p>
+          <div className="mt-5 max-w-[62ch] border-l-4 border-marker pl-4">
+            <p className="text-sm font-semibold">Biggest opportunity</p>
+            <p className="mt-1 font-medium leading-relaxed">{audit.biggestOpportunity}</p>
+          </div>
         </div>
       </div>
     </section>

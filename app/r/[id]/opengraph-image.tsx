@@ -66,9 +66,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             <div style={{ display: "flex", fontSize: 64, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1.5 }}>{trim(name, 28)}</div>
             <div style={{ display: "flex", fontSize: 28, color: "#4a5468", marginTop: 8 }}>{grade ? `${domain}: ${grade}` : domain}</div>
             {opportunity && (
-              <div style={{ display: "flex", flexDirection: "column", marginTop: 32 }}>
+              <div style={{ display: "flex", flexDirection: "column", marginTop: 32, borderLeft: `8px solid ${MARKER}`, paddingLeft: 20 }}>
                 <div style={{ display: "flex", fontSize: 22, fontWeight: 700 }}>Biggest opportunity</div>
-                <div style={{ display: "flex", fontSize: 28, lineHeight: 1.35, marginTop: 8, background: MARKER, padding: "4px 10px", borderRadius: 6 }}>
+                <div style={{ display: "flex", fontSize: 28, lineHeight: 1.35, marginTop: 8 }}>
                   {opportunity}
                 </div>
               </div>
