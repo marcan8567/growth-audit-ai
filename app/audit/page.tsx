@@ -280,7 +280,7 @@ function Progress({
       </div>
 
       {/* Overall progress */}
-      {/* In the logo's colours: black at the start, yellow at the leading edge from the first step on. */}
+      {/* The logo's yellow fills the bar as the steps finish. */}
       <div className="mt-5 h-4 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={STEPS.length} aria-valuenow={finished}>
         {(() => {
           const share = Math.max(finished / STEPS.length, busy ? 0.04 : 0);
@@ -291,7 +291,7 @@ function Progress({
                 width: `${share * 100}%`,
                 ...(failed || share === 0
                   ? {}
-                  : { backgroundImage: "linear-gradient(90deg, #172033 0%, #7a4a1a 45%, #f2b631 75%, #ffe15a 100%)" }),
+                  : { backgroundColor: "#ffe15a" }),
               }}
             />
           );
