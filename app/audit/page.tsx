@@ -280,14 +280,23 @@ function Progress({
       </div>
 
       {/* Overall progress */}
-      {/* In the logo's colours: an ink bar with a yellow tip while it runs, all yellow once the audit is complete. */}
-      <div className="mt-5 h-3 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={STEPS.length} aria-valuenow={finished}>
-        <div
-          className={`relative h-full rounded-full transition-[width,background-color] duration-700 ease-out ${failed ? "bg-red-500" : complete ? "bg-marker" : "bg-ink"}`}
-          style={{ width: `${Math.max(finished / STEPS.length, busy ? 0.04 : 0) * 100}%` }}
-        >
-          {busy && <span aria-hidden="true" className="absolute inset-y-0 right-0 w-3 animate-pulse rounded-full bg-marker motion-reduce:animate-none" />}
-        </div>
+      {/* In the logo's colours: the bar starts black and turns yellow as it fills. The gradient spans the whole
+          track (background-size), so the further the audit gets, the more yellow shows. */}
+      <div className="mt-5 h-4 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={STEPS.length} aria-valuenow={finished}>
+        {(() => {
+          const share = Math.max(finished / STEPS.length, busy ? 0.04 : 0);
+          return (
+            <div
+              className={`h-full rounded-full transition-[width,background-size] duration-700 ease-out ${failed ? "bg-red-500" : ""}`}
+              style={{
+                width: `${share * 100}%`,
+                ...(failed || share === 0
+                  ? {}
+                  : { backgroundImage: "linear-gradient(90deg, #172033 0%, #172033 40%, #7a4a1a 62%, #f2b631 78%, #ffe15a 90%)", backgroundSize: `${100 / share}% 100%` }),
+              }}
+            />
+          );
+        })()}
       </div>
 
       {open && (
