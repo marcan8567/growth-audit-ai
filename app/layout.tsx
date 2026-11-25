@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
   title: "Growth Audit AI: a growth audit from any company website",
   description:
-    "Paste a company website and get a scored growth audit, Google speed data, the brand voice, ready-to-post LinkedIn and X posts and an automation plan in about a minute.",
+    // Under 155 characters, so search results show it in full.
+    "Paste a company website and get a scored growth audit in about a minute: Google speed data, brand voice, LinkedIn and X posts and an automation plan.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
