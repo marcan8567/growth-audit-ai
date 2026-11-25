@@ -125,8 +125,9 @@ export async function POST(request: Request) {
           }),
         ]);
 
-        // 4. Save the report so it gets its own link. Skipped if the visitor left or nothing useful came back.
-        if (!disconnected() && (report.audit || report.brandVoice)) {
+        // 4. Save the report so it gets its own link. Skipped if the visitor left or the growth audit itself
+        //    failed: a shared report without its score would look broken.
+        if (!disconnected() && report.audit) {
           try {
             const id = await saveReport(report, { owner });
             if (id) send({ type: "saved", id });

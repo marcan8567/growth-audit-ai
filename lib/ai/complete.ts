@@ -51,7 +51,26 @@ export function getProvider(): Provider {
 const THINKING_HEADROOM = 6_000;
 
 export async function complete(request: CompletionRequest): Promise<CompletionResult> {
-  return getProvider() === "gemini" ? completeWithGemini(request) : completeWithAnthropic(request);
+  const call = () => (getProvider() === "gemini" ? completeWithGemini(request) : completeWithAnthropic(request));
+  // AI providers are sometimes briefly overloaded or rate-limited. Those errors pass within seconds,
+  // so they get two more tries with a short pause; any other error fails straight away.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await call();
+    } catch (err) {
+      if (attempt >= 3 || !isTemporary(err)) throw err;
+      console.warn(`[${request.label ?? "AI call"}] temporary provider error, retrying (${attempt}/2):`, err instanceof Error ? err.message : err);
+      await new Promise((resolve) => setTimeout(resolve, attempt * 2_000));
+    }
+  }
+}
+
+/** Overloaded, rate-limited, server or network errors: worth trying again. Bad requests or keys are not. */
+function isTemporary(err: unknown): boolean {
+  const status = (err as { status?: number })?.status;
+  if (typeof status === "number") return status === 408 || status === 429 || status >= 500;
+  const message = err instanceof Error ? err.message : String(err);
+  return /(408|429|500|502|503|504|529)|overloaded|unavailable|resource.?exhausted|deadline|timed? ?out|fetch failed|ECONNRESET|socket hang up/i.test(message);
 }
 
 async function completeWithAnthropic({ label, system, messages, maxTokens }: CompletionRequest): Promise<CompletionResult> {
