@@ -33,7 +33,7 @@ If a category can't be judged from the website (for example, no social links), s
 ${JSON_ONLY}
 
 {
-  "summary": "2–3 sentences: overall state of the website's growth marketing",
+  "summary": "2 sentences on what the company offers and what its website already does well for growth. Describe, don't criticise: no 'however' or 'but' turn to problems, no numbers from the speed test. Problems belong in biggestOpportunity, issues and quickWins.",
   "biggestOpportunity": "1–2 sentences: the single change likely to have the biggest impact, and why",
   "categories": [
     {
