@@ -88,10 +88,13 @@ export default async function Home() {
         <section className="bg-mist">
           <div className="mx-auto max-w-6xl px-6 py-20">
             <h2 className="text-3xl font-bold tracking-tight">What the report covers</h2>
-            <dl className="mt-10 grid gap-x-12 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+            <dl className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {COVERS.map((item) => (
-                <div key={item.term}>
-                  <dt className="text-lg font-semibold">{item.term}</dt>
+                <div key={item.term} className="rounded-2xl border border-ink/5 bg-white p-6 shadow-[0_1px_2px_rgba(23,32,51,0.04)]">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-marker text-ink" aria-hidden="true">
+                    <CoverIcon name={item.icon} />
+                  </span>
+                  <dt className="mt-4 text-lg font-semibold">{item.term}</dt>
                   <dd className="mt-1.5 leading-relaxed text-ink-soft">{item.text}</dd>
                 </div>
               ))}
@@ -100,21 +103,43 @@ export default async function Home() {
         </section>
 
         {/* How it works. This is an actual sequence, so it is numbered. */}
-        <section className="mx-auto max-w-6xl px-6 py-20">
-          <h2 className="text-3xl font-bold tracking-tight">How it works</h2>
-          <p className="mt-3 max-w-[60ch] leading-relaxed text-ink-soft">
-            Code handles facts and maths, the AI handles judgement and writing, and every AI answer is checked
-            before it reaches the report.
-          </p>
-          <ol className="mt-10 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((step, i) => (
-              <li key={step.title} className="border-t-2 border-ink pt-4">
-                <span className="text-sm font-semibold text-ink-soft">{i + 1}</span>
-                <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
-                <p className="mt-1.5 leading-relaxed text-ink-soft">{step.text}</p>
-              </li>
-            ))}
-          </ol>
+        <section className="bg-ink text-white">
+          <div className="mx-auto max-w-6xl px-6 py-20">
+            <h2 className="text-3xl font-bold tracking-tight">How it works</h2>
+            <p className="mt-3 max-w-[60ch] leading-relaxed text-white/70">
+              Code handles facts and maths, the AI handles judgement and writing, and every AI answer is checked
+              before it reaches the report. About a minute from address to report.
+            </p>
+            <ol className="relative mt-12 grid gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+              {STEPS.map((step, i) => (
+                <li key={step.title} className="relative">
+                  {/* On wide screens a line joins each step to the next, turning yellow into the last one */}
+                  {i < STEPS.length - 1 && (
+                    <span
+                      aria-hidden="true"
+                      className={`absolute left-16 -right-4 top-6 hidden h-0.5 rounded-full lg:block ${
+                        i === STEPS.length - 2 ? "bg-gradient-to-r from-white/25 to-marker" : "bg-white/25"
+                      }`}
+                    />
+                  )}
+                  <span
+                    className={`relative flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold ring-8 ring-ink ${
+                      i === STEPS.length - 1 ? "bg-marker text-ink" : "bg-white text-ink"
+                    }`}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="mt-5 flex items-center gap-2">
+                    <h3 className="text-xl font-semibold">{step.title}</h3>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${step.by === "AI" ? "bg-marker text-ink" : "bg-white/10 text-white/80"}`}>
+                      {step.by}
+                    </span>
+                  </div>
+                  <p className="mt-2 leading-relaxed text-white/70">{step.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
         </section>
 
         {/* For interviewers and anyone curious about the build. */}
@@ -243,45 +268,106 @@ function SampleScorecard({ report, href }: { report: SavedReport; href: string }
 const COVERS = [
   {
     term: "Growth score",
+    icon: "score",
     text: "Six areas scored from 0 to 10, from messaging to social proof, each backed by quotes from the site. Every quote is checked word for word.",
   },
   {
     term: "Speed and mobile",
+    icon: "speed",
     text: "Google PageSpeed measures how fast the site loads on phones, using real visitor data where Google has it.",
   },
   {
     term: "Brand voice",
+    icon: "voice",
     text: "Tone, audience, positioning and the words the company uses, so new content sounds like them.",
   },
   {
     term: "Posts to publish",
+    icon: "post",
     text: "A short post for LinkedIn and one for X, in the brand's voice and ready to copy. Want a full content plan? Get in touch on LinkedIn.",
   },
   {
     term: "Automation plan",
+    icon: "flow",
     text: "The three marketing workflows most worth automating, with what starts them, the steps, the tools and where AI helps.",
   },
   {
     term: "A link to share",
+    icon: "link",
     text: "Every report gets its own page, so you can send it to a colleague or a client.",
   },
-];
+] as const;
+
+/** Line icons for "What the report covers", drawn in the logo's ink on a yellow tile. */
+function CoverIcon({ name }: { name: (typeof COVERS)[number]["icon"] }) {
+  const paths: Record<typeof name, React.ReactNode> = {
+    score: (
+      <>
+        <path d="M12 3a9 9 0 1 0 9 9" />
+        <path d="M12 3a9 9 0 0 1 9 9" strokeDasharray="3 3" />
+        <path d="M8 13l3 3 5-6" />
+      </>
+    ),
+    speed: (
+      <>
+        <path d="M4 15a8 8 0 1 1 16 0" />
+        <path d="M12 15l4-5" />
+        <circle cx="12" cy="15" r="1.2" fill="currentColor" />
+      </>
+    ),
+    voice: (
+      <>
+        <path d="M4 5h16v10H9l-5 4z" />
+        <path d="M8 9h8M8 12h5" />
+      </>
+    ),
+    post: (
+      <>
+        <rect x="4" y="4" width="16" height="16" rx="3" />
+        <path d="M8 9h8M8 13h8M8 17h4" />
+      </>
+    ),
+    flow: (
+      <>
+        <rect x="3" y="4" width="6" height="5" rx="1.5" />
+        <rect x="15" y="15" width="6" height="5" rx="1.5" />
+        <path d="M6 9v4a2 2 0 0 0 2 2h7" />
+        <path d="M13 13l2 2-2 2" />
+      </>
+    ),
+    link: (
+      <>
+        <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
+        <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+      </>
+    ),
+  };
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {paths[name]}
+    </svg>
+  );
+}
 
 const STEPS = [
   {
     title: "Read",
+    by: "Code",
     text: "Fetches the homepage and up to four key pages, then runs ten checks in code: titles, headings, calls to action and more.",
   },
   {
     title: "Measure",
+    by: "Google",
     text: "Google PageSpeed tests the homepage on a mobile phone at the same time.",
   },
   {
     title: "Judge",
+    by: "AI",
     text: "The AI writes the brand voice, the scores, two social media posts and the automation plan, in parallel where it can.",
   },
   {
     title: "Verify",
+    by: "Code",
     text: "Each answer must match a strict format, or the AI is told what is wrong and tries once more. Quotes are checked against the site.",
   },
 ];
