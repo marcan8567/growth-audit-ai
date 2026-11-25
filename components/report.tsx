@@ -74,6 +74,66 @@ export function Report({
   );
 }
 
+/* ---------- Share buttons ---------- */
+
+/**
+ * Copy link, plus LinkedIn and X. These are plain links to each network's own share page: no scripts or
+ * cookies from LinkedIn or X load on this site, and nothing is sent to them until someone clicks.
+ */
+function ShareButtons({ shareUrl, reportId, name, score }: { shareUrl: string; reportId?: string | null; name: string; score: number }) {
+  // "current" means this page's own address, which is only known in the browser.
+  const [url, setUrl] = useState(shareUrl === "current" ? "" : shareUrl);
+  useEffect(() => {
+    if (shareUrl === "current") setUrl(window.location.href.split("#")[0]);
+    else setUrl(shareUrl);
+  }, [shareUrl]);
+
+  const text = `${name} scored ${score}/100 in this AI growth audit`;
+  const networks = [
+    {
+      id: "share_linkedin" as const,
+      label: "Share on LinkedIn",
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      icon: "M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4v11H3zM9.5 9.75h3.8v1.5h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1v5.45h-4v-4.83c0-1.15-.02-2.63-1.6-2.63-1.6 0-1.85 1.25-1.85 2.55v4.91h-4z",
+    },
+    {
+      id: "share_x" as const,
+      label: "Share on X",
+      href: `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      icon: "M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.78zm-1.08 16.17h1.7L7.4 4.73H5.58z",
+    },
+  ];
+
+  return (
+    <div className="flex items-center gap-2">
+      <CopyButton
+        text={url}
+        label="Share report"
+        className="rounded-lg border-2 border-ink px-4 py-2 text-sm font-semibold hover:bg-ink hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
+        copiedLabel="Link copied"
+        onCopy={() => trackClick("link_copy", reportId)}
+      />
+      {url &&
+        networks.map((n) => (
+          <a
+            key={n.id}
+            href={n.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={n.label}
+            title={n.label}
+            onClick={() => trackClick(n.id, reportId)}
+            className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-ink text-ink hover:bg-ink hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+              <path d={n.icon} />
+            </svg>
+          </a>
+        ))}
+    </div>
+  );
+}
+
 /* ---------- Cover ---------- */
 
 function Cover({
@@ -103,15 +163,7 @@ function Cover({
             </p>
           </div>
         </div>
-        {shareUrl && (
-          <CopyButton
-            text={shareUrl === "current" ? (typeof window === "undefined" ? "" : window.location.href) : shareUrl}
-            label="Share report"
-            className="rounded-lg border-2 border-ink px-4 py-2 text-sm font-semibold hover:bg-ink hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
-            copiedLabel="Link copied"
-            onCopy={() => trackClick("link_copy", reportId)}
-          />
-        )}
+        {shareUrl && <ShareButtons shareUrl={shareUrl} reportId={reportId} name={brand.name} score={audit.overallScore} />}
       </div>
 
       <div className="mt-8 grid items-center gap-8 sm:grid-cols-[auto_1fr]">

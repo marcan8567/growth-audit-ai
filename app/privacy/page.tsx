@@ -112,11 +112,16 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2>10. Contact via LinkedIn</h2>
+            <h2>10. Contact via LinkedIn, and sharing</h2>
             <p>
               &quot;Message me on LinkedIn&quot; buttons link to a LinkedIn profile. LinkedIn&apos;s own privacy policy applies once you
               open it. When such a button is clicked, a notification naming the audited website (not you) is sent to a private
               Discord channel (Discord Inc., USA) so the request can be answered.
+            </p>
+            <p>
+              The &quot;Share on LinkedIn&quot; and &quot;Share on X&quot; buttons on reports are plain links: no scripts or cookies from
+              LinkedIn or X load on this site, and nothing is sent to them until you click one. After that, their own privacy
+              policies apply.
             </p>
           </section>
 

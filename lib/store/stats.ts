@@ -17,13 +17,15 @@ export const STAT_EVENTS = [
   "cta_quickwins", // "Message me on LinkedIn" under the hidden quick wins
   "cta_contentplan", // "Message me on LinkedIn" under the posts
   "cta_contact", // "Message me on LinkedIn" on the homepage or in the report's contact box
+  "share_linkedin", // a report shared with the LinkedIn button
+  "share_x", // a report shared with the X button
   "lead_email", // an email left in the form under a report
 ] as const;
 
 export type StatEvent = (typeof STAT_EVENTS)[number];
 
 /** Events the browser may report (the rest are counted on the server). */
-export const CLIENT_EVENTS: readonly StatEvent[] = ["link_copy", "cta_quickwins", "cta_contentplan", "cta_contact"];
+export const CLIENT_EVENTS: readonly StatEvent[] = ["link_copy", "cta_quickwins", "cta_contentplan", "cta_contact", "share_linkedin", "share_x"];
 
 // Separate counters for local, preview and production, so testing never shows up in the live numbers.
 const ENVIRONMENT = process.env.VERCEL_ENV ?? "local";

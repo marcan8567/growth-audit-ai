@@ -20,6 +20,8 @@ type Counts = Record<
   | "cta_quickwins"
   | "cta_contentplan"
   | "cta_contact"
+  | "share_linkedin"
+  | "share_x"
   | "lead_email",
   number
 >;
@@ -175,7 +177,7 @@ function Dashboard({ stats }: { stats: Stats }) {
         </ol>
         <p className="text-sm text-ink-soft">
           LinkedIn clicks: {t.cta_quickwins} on the quick-wins offer, {t.cta_contentplan} on the content-plan offer, {t.cta_contact ?? 0} on the
-          contact buttons. Emails left: {emails}. Report links copied: {t.link_copy}. Your own audits: {t.owner_audit}.
+          contact buttons. Emails left: {emails}. Reports shared: {t.link_copy} links copied, {t.share_linkedin ?? 0} on LinkedIn, {t.share_x ?? 0} on X. Your own audits: {t.owner_audit}.
         </p>
       </section>
 
