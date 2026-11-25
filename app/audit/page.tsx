@@ -242,7 +242,7 @@ function Progress({
     <section aria-live="polite" className="rounded-2xl border border-ink/10 bg-white p-5 text-ink sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          {complete ? <Icon status="done" large /> : busy ? <Icon status="running" large /> : <Icon status="error" large />}
+          {complete ? <Icon status="complete" large /> : busy ? <Icon status="running" large /> : <Icon status="error" large />}
           <div>
             <p className="font-semibold">
               {complete
@@ -280,11 +280,14 @@ function Progress({
       </div>
 
       {/* Overall progress */}
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={STEPS.length} aria-valuenow={finished}>
+      {/* In the logo's colours: an ink bar with a yellow tip while it runs, all yellow once the audit is complete. */}
+      <div className="mt-5 h-3 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={STEPS.length} aria-valuenow={finished}>
         <div
-          className={`h-full rounded-full transition-[width] duration-500 ${failed ? "bg-red-500" : "bg-emerald-500"}`}
-          style={{ width: `${(finished / STEPS.length) * 100}%` }}
-        />
+          className={`relative h-full rounded-full transition-[width,background-color] duration-700 ease-out ${failed ? "bg-red-500" : complete ? "bg-marker" : "bg-ink"}`}
+          style={{ width: `${Math.max(finished / STEPS.length, busy ? 0.04 : 0) * 100}%` }}
+        >
+          {busy && <span aria-hidden="true" className="absolute inset-y-0 right-0 w-3 animate-pulse rounded-full bg-marker motion-reduce:animate-none" />}
+        </div>
       </div>
 
       {open && (
@@ -313,7 +316,9 @@ function Progress({
   );
 }
 
-function Icon({ status, large = false }: { status: Status; large?: boolean }) {
+function Icon({ status: given, large = false }: { status: Status | "complete"; large?: boolean }) {
+  // "complete" is the big tick on the finished card, in the logo's colours (yellow, ink tick) to match the bar.
+  const status: Status = given === "complete" ? "done" : given;
   const size = large ? "h-9 w-9" : "h-6 w-6";
   if (status === "running") {
     return (
@@ -324,7 +329,7 @@ function Icon({ status, large = false }: { status: Status; large?: boolean }) {
   }
   const style = {
     idle: "border-2 border-ink/15 bg-white",
-    done: "bg-emerald-500 text-white",
+    done: given === "complete" ? "bg-marker text-ink" : "bg-emerald-500 text-white",
     error: "bg-red-500 text-white",
     skipped: "bg-mist text-ink-soft",
   }[status];
