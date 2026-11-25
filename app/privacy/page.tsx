@@ -38,6 +38,7 @@ export default function PrivacyPage() {
             <ul>
               <li>No account, no cookies, no tracking profiles, no advertising.</li>
               <li>An audit reads the public website you enter. You don&apos;t need to give any personal data.</li>
+              <li>Leaving your email under a report is optional; it is only used to reply to you and deleted after 12 months.</li>
               <li>Your IP address is processed for hosting and, in pseudonymised form, to enforce the daily limit.</li>
             </ul>
           </section>
@@ -82,7 +83,20 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2>7. Usage statistics</h2>
+            <h2>7. If you leave your email</h2>
+            <p>
+              Under each report you can choose to leave your email address to receive the full list of fixes. It is stored
+              with Upstash, Inc. (database in the USA) together with the audited website and the date, read only by the person
+              responsible named above, and used only to reply to your request: no newsletter, no sharing, no advertising.
+              It is deleted automatically after 12 months, or earlier if you ask. Legal basis: Art. 6(1)(a) GDPR (your
+              consent, given by sending the form), which you can withdraw at any time by email, without affecting replies
+              sent before. A notification that an email was left (naming the audited website, not your address) is sent to a
+              private Discord channel.
+            </p>
+          </section>
+
+          <section>
+            <h2>8. Usage statistics</h2>
             <p>
               The site counts how often pages are viewed, audits are run and buttons are clicked, as daily totals only. No
               cookies are used, and no data about individual visitors is stored.
@@ -90,7 +104,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2>8. Company logos and fonts</h2>
+            <h2>9. Company logos and fonts</h2>
             <p>
               Company logos are fetched by our server and delivered from our own domain, and the fonts are served from our own
               server too. Your browser does not contact the audited company&apos;s website or Google Fonts.
@@ -98,7 +112,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2>9. Contact via LinkedIn</h2>
+            <h2>10. Contact via LinkedIn</h2>
             <p>
               &quot;Message me on LinkedIn&quot; buttons link to a LinkedIn profile. LinkedIn&apos;s own privacy policy applies once you
               open it. When such a button is clicked, a notification naming the audited website (not you) is sent to a private
@@ -107,7 +121,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2>10. Storage in your browser</h2>
+            <h2>11. Storage in your browser</h2>
             <p>
               The site sets no cookies. Only on the private statistics page is the entered access code kept in your
               browser&apos;s session storage until you close the tab; this is strictly necessary for that page to work and
@@ -116,7 +130,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2>11. Your rights</h2>
+            <h2>12. Your rights</h2>
             <p>
               Under the GDPR and the LOPDGDD you have the right to access, rectification, erasure, restriction of processing,
               data portability, and to object to processing based on Art. 6(1)(f) GDPR (Art. 15–21 GDPR). To exercise them,

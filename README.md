@@ -71,7 +71,7 @@ flowchart LR
 
 ## Built for growth
 
-- **Lead generation:** one free quick win and two free posts, then "message me on LinkedIn" for the full fix list or a content plan. Hidden fixes are removed on the server, not just blurred.
+- **Lead generation:** one free quick win and two free posts, then "message me on LinkedIn" for the full fix list or a content plan, or leave an email under the report (optional, stored with consent, deleted after 12 months, listed on `/stats`). Hidden fixes are removed on the server, not just blurred.
 - **Funnel tracking without cookies:** daily counts of visits → audits → report views → LinkedIn clicks, on a private dashboard at `/stats`.
 - **Lead alerts:** a click on a LinkedIn offer posts the website and offer to a Discord or Slack channel.
 - **Shareable by design:** every report link unfurls into a branded preview card with the score.

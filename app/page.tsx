@@ -4,6 +4,8 @@ import { listRecentAudits, loadReport, type RecentAudit, type SavedReport } from
 import { track } from "@/lib/store/stats";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
+import { ContactCta } from "@/components/contact-cta";
+import { Testimonials } from "@/components/testimonials";
 
 // The sample report is read from Redis on each visit (one small, fast read; well within Upstash's free tier).
 export const dynamic = "force-dynamic";
@@ -141,6 +143,9 @@ export default async function Home() {
             </ol>
           </div>
         </section>
+
+        <Testimonials />
+        <ContactCta />
 
         {/* For interviewers and anyone curious about the build. */}
         <section className="border-t border-mist">

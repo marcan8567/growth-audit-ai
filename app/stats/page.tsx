@@ -11,12 +11,22 @@ import { SiteFooter } from "@/components/site-footer";
  */
 
 type Counts = Record<
-  "home_view" | "audit_started" | "audit_completed" | "owner_audit" | "report_view" | "link_copy" | "cta_quickwins" | "cta_contentplan",
+  | "home_view"
+  | "audit_started"
+  | "audit_completed"
+  | "owner_audit"
+  | "report_view"
+  | "link_copy"
+  | "cta_quickwins"
+  | "cta_contentplan"
+  | "cta_contact"
+  | "lead_email",
   number
 >;
 interface Stats {
   days: { date: string; counts: Counts }[];
   totals: Counts;
+  leads: { id: string; email: string; domain: string | null; reportId: string | null; createdAt: string }[];
 }
 
 const CODE_KEY = "growth-audit-stats-code"; // kept for this browser tab only
@@ -66,7 +76,7 @@ export default function StatsPage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Funnel, last 30 days</h1>
           <p className="mt-2 max-w-[62ch] text-ink-soft">
-            Visitors only; audits you run with the access code are counted separately. Counts only, no cookies and no personal data.
+            Visitors only; audits you run with the access code are counted separately. Counts only, no cookies. The one exception is emails people chose to leave under a report, listed at the bottom.
           </p>
         </div>
   
@@ -106,13 +116,14 @@ export default function StatsPage() {
 
 function Dashboard({ stats }: { stats: Stats }) {
   const t = stats.totals;
-  const linkedIn = t.cta_quickwins + t.cta_contentplan;
+  const linkedIn = t.cta_quickwins + t.cta_contentplan + (t.cta_contact ?? 0);
+  const emails = t.lead_email ?? 0;
 
   const tiles = [
     { label: "Audits by visitors", value: t.audit_completed },
     { label: "Report views", value: t.report_view },
     { label: "LinkedIn clicks", value: linkedIn },
-    { label: "Your own audits", value: t.owner_audit },
+    { label: "Emails left", value: emails },
   ];
 
   const funnel = [
@@ -120,7 +131,7 @@ function Dashboard({ stats }: { stats: Stats }) {
     { label: "Audits started", value: t.audit_started },
     { label: "Audits completed", value: t.audit_completed },
     { label: "Report views", value: t.report_view },
-    { label: "LinkedIn clicks", value: linkedIn },
+    { label: "Leads (LinkedIn clicks and emails)", value: linkedIn + emails },
   ];
   const max = Math.max(1, ...funnel.map((f) => f.value));
 
@@ -163,7 +174,8 @@ function Dashboard({ stats }: { stats: Stats }) {
           })}
         </ol>
         <p className="text-sm text-ink-soft">
-          LinkedIn clicks: {t.cta_quickwins} on the quick-wins offer, {t.cta_contentplan} on the content-plan offer. Report links copied: {t.link_copy}.
+          LinkedIn clicks: {t.cta_quickwins} on the quick-wins offer, {t.cta_contentplan} on the content-plan offer, {t.cta_contact ?? 0} on the
+          contact buttons. Emails left: {emails}. Report links copied: {t.link_copy}. Your own audits: {t.owner_audit}.
         </p>
       </section>
 
@@ -178,6 +190,7 @@ function Dashboard({ stats }: { stats: Stats }) {
                 <th className="px-4 py-2.5 text-right font-medium">Audits</th>
                 <th className="px-4 py-2.5 text-right font-medium">Views</th>
                 <th className="px-4 py-2.5 text-right font-medium">LinkedIn</th>
+                <th className="px-4 py-2.5 text-right font-medium">Emails</th>
                 <th className="px-4 py-2.5 text-right font-medium">Yours</th>
               </tr>
             </thead>
@@ -188,13 +201,64 @@ function Dashboard({ stats }: { stats: Stats }) {
                   <td className="px-4 py-2 text-right">{d.counts.home_view}</td>
                   <td className="px-4 py-2 text-right">{d.counts.audit_completed}</td>
                   <td className="px-4 py-2 text-right">{d.counts.report_view}</td>
-                  <td className="px-4 py-2 text-right">{d.counts.cta_quickwins + d.counts.cta_contentplan}</td>
+                  <td className="px-4 py-2 text-right">{d.counts.cta_quickwins + d.counts.cta_contentplan + (d.counts.cta_contact ?? 0)}</td>
+                  <td className="px-4 py-2 text-right">{d.counts.lead_email ?? 0}</td>
                   <td className="px-4 py-2 text-right">{d.counts.owner_audit}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Email leads</h2>
+          <p className="mt-1 text-sm text-ink-soft">
+            People who asked for the full list of fixes. Reply by hand; each email is deleted automatically after 12 months.
+          </p>
+        </div>
+        {stats.leads.length === 0 ? (
+          <p className="rounded-xl border border-ink/10 bg-white p-5 text-sm text-ink-soft">No emails yet.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-ink/10 bg-white">
+            <table className="w-full text-sm">
+              <thead className="border-b border-ink/10 text-left text-ink-soft">
+                <tr>
+                  <th className="px-4 py-2.5 font-medium">Date</th>
+                  <th className="px-4 py-2.5 font-medium">Email</th>
+                  <th className="px-4 py-2.5 font-medium">Website audited</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-ink/5">
+                {stats.leads.map((lead) => (
+                  <tr key={lead.id}>
+                    <td className="whitespace-nowrap px-4 py-2 tabular-nums">
+                      {new Date(lead.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    </td>
+                    <td className="px-4 py-2">
+                      <a
+                        href={`mailto:${lead.email}?subject=${encodeURIComponent(`Your growth audit${lead.domain ? ` of ${lead.domain}` : ""}`)}`}
+                        className="font-medium underline underline-offset-4"
+                      >
+                        {lead.email}
+                      </a>
+                    </td>
+                    <td className="px-4 py-2">
+                      {lead.reportId ? (
+                        <a href={`/r/${lead.reportId}`} className="underline underline-offset-4">
+                          {lead.domain ?? "Report"}
+                        </a>
+                      ) : (
+                        <span className="text-ink-soft">{lead.domain ?? "–"}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </>
   );

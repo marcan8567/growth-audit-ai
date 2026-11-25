@@ -26,3 +26,10 @@ export const SITE = {
 
 /** True when the legal details are complete, so the legal notice and privacy policy can be shown. */
 export const LEGAL_READY = Boolean(SITE.legal.street && SITE.legal.city && SITE.legal.email);
+
+/**
+ * Quotes for the homepage's "What people say" section, which stays hidden while this list is empty.
+ * Only real quotes, and only with the person's permission to show their name. For example:
+ * { quote: "The quick wins were spot on.", name: "Ana López", role: "Head of Marketing", company: "Acme" }
+ */
+export const TESTIMONIALS: { quote: string; name: string; role: string; company?: string }[] = [];

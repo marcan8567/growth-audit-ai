@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 const OFFERS: Partial<Record<StatEvent, string>> = {
   cta_quickwins: "full quick-wins list",
   cta_contentplan: "full content plan",
+  cta_contact: "general contact",
 };
 
 /**

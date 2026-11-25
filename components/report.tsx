@@ -50,6 +50,7 @@ export function Report({
     brandVoice && { id: "brand-voice", label: "Brand voice" },
     contentPack && { id: "posts", label: "Posts" },
     automation && { id: "automations", label: "Automations" },
+    audit && reportId && { id: "contact", label: "Get help" },
   ].filter(Boolean) as { id: string; label: string }[];
 
   if (!sections.length) return null;
@@ -66,6 +67,7 @@ export function Report({
       {brandVoice && <BrandVoice voice={brandVoice} />}
       {contentPack && <Posts pack={contentPack} site={site} reportId={reportId} />}
       {automation && <Automations plan={automation} />}
+      {audit && reportId && <LeadForm domain={site?.domain} reportId={reportId} />}
       {site && <Disclaimer domain={site.domain} name={site.brand?.name ?? site.domain} />}
 
     </div>
@@ -520,6 +522,104 @@ function FlowStep({ kind, label, text, last = false }: { kind: "trigger" | "step
         <span className={kind === "step" ? "text-ink-soft" : ""}>{text}</span>
       </div>
     </li>
+  );
+}
+
+/* ---------- Email lead form ---------- */
+
+/**
+ * An optional way to get in touch without LinkedIn: the email is stored for the owner (see /stats)
+ * and the owner replies by hand. Nothing is sent automatically, so the copy promises a reply, not an email.
+ */
+function LeadForm({ domain, reportId }: { domain?: string; reportId: string }) {
+  const [email, setEmail] = useState("");
+  const [company, setCompany] = useState(""); // hidden field that only bots fill in
+  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setState("sending");
+    setError(null);
+    try {
+      const res = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, reportId, company }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? "Something went wrong. Please try again.");
+      setState("sent");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setState("idle");
+    }
+  }
+
+  return (
+    <section id="contact" className="scroll-mt-24 rounded-2xl bg-ink p-6 text-white sm:p-8">
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Want a hand putting this into practice?</h2>
+          <p className="mt-2 leading-relaxed text-white/75">
+            Leave your email and I&apos;ll send you the full list of fixes{domain ? ` for ${domain}` : ""}, with where I&apos;d start.
+          </p>
+        </div>
+        {state === "sent" ? (
+          <p role="status" className="rounded-xl bg-white/10 p-5 font-medium">
+            Thanks! I&apos;ll get back to you by email{domain ? ` about ${domain}` : ""}.
+          </p>
+        ) : (
+          <form onSubmit={submit} className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <label htmlFor="lead-email" className="sr-only">
+                Your email
+              </label>
+              <input
+                id="lead-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="min-w-0 flex-1 rounded-lg border-2 border-transparent bg-white px-4 py-3 text-ink outline-none placeholder:text-ink-soft/70 focus:border-marker"
+              />
+              <button
+                type="submit"
+                disabled={state === "sending"}
+                className="rounded-lg bg-marker px-5 py-3 font-semibold text-ink hover:bg-marker/85 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40 disabled:opacity-70"
+              >
+                {state === "sending" ? "Sending…" : "Send me the fixes"}
+              </button>
+            </div>
+            <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+              <label htmlFor="lead-company">Company</label>
+              <input id="lead-company" tabIndex={-1} autoComplete="off" value={company} onChange={(e) => setCompany(e.target.value)} />
+            </div>
+            {error && (
+              <p role="alert" className="text-sm text-red-200">
+                {error}
+              </p>
+            )}
+            <p className="text-sm text-white/60">
+              Optional. I only use your email to reply to you; it&apos;s deleted after 12 months.{" "}
+              <a href="/privacy" className="underline underline-offset-4 hover:text-white">
+                Privacy policy
+              </a>
+              {SITE.linkedinUrl && (
+                <>
+                  {" "}or{" "}
+                  <a href={SITE.linkedinUrl} target="_blank" rel="noreferrer" onClick={() => trackClick("cta_contact", reportId)} className="font-semibold text-white underline underline-offset-4 hover:text-marker">
+                    message me on LinkedIn
+                  </a>
+                </>
+              )}
+              .
+            </p>
+          </form>
+        )}
+      </div>
+    </section>
   );
 }
 

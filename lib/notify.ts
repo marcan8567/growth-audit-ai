@@ -23,7 +23,7 @@ export async function sendLeadAlert({ domain, offer, reportUrl }: { domain: stri
   }
 
   const text = [
-    `New lead: someone clicked "Message me on LinkedIn" (${offer})`,
+    offer === "left their email" ? "New lead: someone left their email under a report (see /stats)" : `New lead: someone clicked "Message me on LinkedIn" (${offer})`,
     domain ? `Website audited: ${domain}` : null,
     reportUrl ? `Report: ${reportUrl}` : null,
     ENVIRONMENT !== "production" ? `(from ${ENVIRONMENT}, not the live site)` : null,
