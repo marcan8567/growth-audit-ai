@@ -18,7 +18,7 @@ export const SITE = {
     street: "Plaza de Miquel Dolç 5",
     city: "07008 Palma de Mallorca", // postcode and town
     country: { local: "España", english: "Spain" },
-    email: "",
+    email: "marc.cantacuzene@gmail.com",
     /** NIF or NIE: expected by LSSI-CE for anyone offering services online. Shown when filled in. */
     taxId: "Z0773325R",
   },
