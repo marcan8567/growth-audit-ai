@@ -56,7 +56,8 @@ export default function LegalNoticePage() {
             <p className="text-ink-soft">
               Growth Audit AI is a portfolio project. It produces automated growth audits of public websites using AI. Reports
               can contain errors and are not professional advice. The project is not affiliated with the companies whose
-              websites are analysed; their names and logos belong to their owners.
+              websites are analysed; their names and logos belong to their owners. This legal notice also applies to the demo
+              website {SITE.demoSiteDomain}: Stryon Labs is a fictional company, and that site offers no real services.
             </p>
           </section>
 

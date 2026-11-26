@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           <Logo />
         </Link>
         <h1 className="mt-10 text-4xl font-bold tracking-tight">Privacy policy</h1>
-        <p className="mt-2 text-ink-soft">Política de privacidad, as of 25 November 2026</p>
+        <p className="mt-2 text-ink-soft">Política de privacidad, as of 26 November 2026</p>
 
         <div className="mt-10 flex flex-col gap-8 leading-relaxed [&_h2]:text-lg [&_h2]:font-semibold [&_p]:mt-2 [&_p]:text-ink-soft [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:text-ink-soft">
           <section>
@@ -51,6 +51,12 @@ export default function PrivacyPage() {
               user agent, to deliver the page and keep the service secure. Legal basis: Art. 6(1)(f) GDPR (legitimate
               interest in a secure, working website). Data is transferred to the USA on the basis of the EU-US Data Privacy
               Framework and the European Commission&apos;s standard contractual clauses.
+            </p>
+            <p>
+              This policy also covers the demo website{" "}
+              <a href={`https://${SITE.demoSiteDomain}`} className="underline underline-offset-4">{SITE.demoSiteDomain}</a> (Stryon Labs, a
+              fictional company used to show what this tool does). It is run by the same person, hosted by Vercel in the same way,
+              sets no cookies, has no forms and collects no other data.
             </p>
           </section>
 
