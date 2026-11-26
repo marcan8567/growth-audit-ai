@@ -810,22 +810,31 @@ function Automations({ plan }: { plan: AutomationPlan }) {
       <ol className="flex flex-col gap-4">
         {/* Older reports have 4–6 automations; the first three are the most valuable. */}
         {plan.automations.slice(0, 3).map((a, i) => (
-          <li key={i} className="rounded-xl border border-ink/10 bg-white p-5 sm:p-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-lg font-semibold">
-                {i + 1}. {a.name}
-              </span>
-              <Badge tone={levelTone(a.impact, "impact")}>
-                {t.impact}: {t.level[a.impact] ?? a.impact}
-              </Badge>
-              <Badge tone={levelTone(a.effort, "effort")}>
-                {t.effort}: {t.level[a.effort] ?? a.effort}
-              </Badge>
-            </div>
-            <p className="mt-1 text-ink-soft">{a.goal}</p>
-
+          <li key={i} className="rounded-xl border border-ink/10 bg-white">
+            {/* A fold-out per automation: the first starts open so readers see what's inside; Save as PDF opens all. */}
+            <details className="group" open={i === 0 || undefined}>
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-4 rounded-xl p-5 hover:bg-mist/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker sm:p-6">
+                <span className="min-w-0">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="text-lg font-semibold">
+                      {i + 1}. {a.name}
+                    </span>
+                    <Badge tone={levelTone(a.impact, "impact")}>
+                      {t.impact}: {t.level[a.impact] ?? a.impact}
+                    </Badge>
+                    <Badge tone={levelTone(a.effort, "effort")}>
+                      {t.effort}: {t.level[a.effort] ?? a.effort}
+                    </Badge>
+                  </span>
+                  <span className="mt-1 block text-ink-soft">{a.goal}</span>
+                </span>
+                <span className="mt-1.5 shrink-0">
+                  <Chevron />
+                </span>
+              </summary>
+              <div className="px-5 pb-5 sm:px-6 sm:pb-6">
             {/* The workflow as a flow: what starts it, what happens, what it achieves. */}
-            <ol className="mt-5 flex flex-col">
+            <ol className="flex flex-col">
               <FlowStep kind="trigger" label={t.trigger} text={a.trigger} />
               {a.steps.map((s, j) => (
                 <FlowStep key={j} kind="step" label={t.step(j + 1)} text={s} />
@@ -846,6 +855,8 @@ function Automations({ plan }: { plan: AutomationPlan }) {
                 {a.aiRole}
               </p>
             )}
+              </div>
+            </details>
           </li>
         ))}
       </ol>
