@@ -119,18 +119,21 @@ The report used to include a 14-day content pack. It now gives **two short posts
 
 **Talking point:** "The tool is also my own funnel: every report a stranger runs ends with a reason to message me."
 
-## 11. Recent audits on the homepage
+## 11. The sample company: Stryon Labs
 
-The homepage shows the three newest audits as boxes (website, score, grade, how long ago), each linking to its full report.
+The homepage sample, the demo video and the README screenshots all show an audit of **Stryon Labs**, a fictional AI automation agency built for this project ([stryon-labs.vercel.app](https://stryon-labs.vercel.app), repo `marcan8567/stryon-labs`). An earlier version listed recent audits of real companies on the homepage; that was removed.
 
 | Decision | Why |
 | --- | --- |
-| **Only audits run with the access code are listed** | Visitors were promised that only people with the link see their report. Listing everyone's audits would break that, and anyone could put an embarrassing domain on the homepage right before an interview |
-| **Listed reports never expire** | A box never leads to a missing page |
-| **One box per website, newest first; the homepage sample is left out** | No duplicates, and the boxes stay varied |
-| **A separate list for local, preview and production** | Local test runs never appear on the live homepage |
+| **A fictional company, not a real one** | Showcasing a real company's weaknesses in my own marketing is unfair to them (and in Spain could count as disparagement under the unfair-competition law). The AI can also be wrong, and a mistake about a real company shouldn't sit on my homepage |
+| **The audit itself is real** | The site is a normal website on its own domain, and the report comes from the same pipeline as any other. Nothing in the report is edited |
+| **Decent but imperfect on purpose** | Clear services and pricing, but no social profiles and a small blog, so the report shows strengths and real gaps |
+| **Clearly labelled** | Every page footer says the company, clients, reviews and prices are made up; clients use Microsoft's well-known sample names (Contoso, Fabrikam, Northwind Traders); every Stryon report on this site carries a "Sample report" note; Google is asked not to index it; the email address uses the reserved `.example` domain |
+| **Reports of real companies still work** | Anyone can audit any site, and owner audits still get a permanent link, but they are no longer shown on the homepage |
 
-**Tip:** before an interview, run the company's website with your access code. It then appears on your homepage as a recent audit, and you can send them the report link.
+**Nice detail:** the audit spotted that the client names were placeholders ("Replace generic mock client names like Fabrikam, Contoso…"), which is exactly what a sharp consultant would flag.
+
+**Tip:** before an interview, run the company's website with your access code and send them the report link. It stays private to whoever has the link.
 
 ## 12. The post, previewed as it would look in the feed (`components/social-post.tsx`)
 

@@ -8,9 +8,11 @@
 
 Scores for six growth areas, Google speed data, the brand voice, ready-to-post LinkedIn and X posts and a marketing automation plan, built only from what is on the company's public website.
 
-**Live:** [growth-audit-ai.vercel.app](https://growth-audit-ai.vercel.app) · **Sample report:** [Stripe, 87/100](https://growth-audit-ai.vercel.app/r/H9UVZirW1H) · **How it's built:** [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)
+**Live:** [growth-audit-ai.vercel.app](https://growth-audit-ai.vercel.app) · **Sample report:** [Stryon Labs, a fictional agency](https://growth-audit-ai.vercel.app/r/Zj6Citjzcu) · **How it's built:** [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)
 
-![The homepage: a URL field next to a real sample report](docs/screenshots/homepage.png)
+![The homepage: a URL field next to the sample report](docs/screenshots/homepage.png)
+
+> The screenshots and the sample report show **Stryon Labs**, a fictional AI agency built as a [demo website](https://stryon-labs.vercel.app) so no real company is judged in public. The audit itself is real, produced by the same pipeline as any other.
 
 ## What you get
 
@@ -67,7 +69,7 @@ flowchart LR
 | Time per audit | about 55 seconds (PageSpeed and the AI provider vary) |
 | Cost per audit | about $0.026, measured per step from logged token counts |
 | Cost cut | about 60%, by moving two steps to a cheaper model and turning the model's hidden "thinking" down to low |
-| Quote accuracy | typically every quote verified on the site (for example 11 of 11 on Stripe) |
+| Quote accuracy | typically every quote verified on the site (for example 10 of 10 on the sample report) |
 
 ## Built for growth
 
@@ -103,7 +105,7 @@ npm run dev                  # http://localhost:3000
 
 ```
 app/
-  page.tsx                  landing page with a live sample report and recent audits
+  page.tsx                  landing page with the live sample report
   audit/page.tsx            audit page: URL in, live progress, full report out
   r/[id]/                   a saved report, plus its share preview image
   stats/page.tsx            private funnel dashboard
