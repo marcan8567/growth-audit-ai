@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SiteCheck } from "@/lib/reader/checks";
 import type { WebsiteSummary } from "@/lib/reader/format";
 import type { PageSpeedResult } from "@/lib/reader/pagespeed";
@@ -749,10 +749,18 @@ function ScoreRing({
 
 function CompanyLogo({ iconUrl, name, size }: { iconUrl: string | null; name: string; size: number }) {
   const [failed, setFailed] = useState(false);
+  const img = useRef<HTMLImageElement>(null);
+  // An image can fail before React is ready to hear about it (on the saved-report page it loads with the HTML),
+  // so check once after loading too; a broken image has no natural width.
+  useEffect(() => {
+    const el = img.current;
+    if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+  }, []);
   if (iconUrl && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- the company's own icon, loaded from their site
       <img
+        ref={img}
         src={iconUrl}
         alt=""
         width={size}
