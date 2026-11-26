@@ -59,6 +59,18 @@ const ENVIRONMENT = process.env.VERCEL_ENV ?? "local";
 const ANON_KEY = `anon:${ENVIRONMENT}`;
 const TOTALS_KEY = `totals:${ENVIRONMENT}`;
 const ANON_KEEP = 20;
+// The owner's log of recent audits, with websites. Only readable through /stats with the admin code.
+const LOG_KEY = `auditlog:${ENVIRONMENT}`;
+const LOG_KEEP = 50;
+
+/** One audit in the owner's log on /stats. */
+export interface AuditLogEntry {
+  id: string;
+  domain: string;
+  score: number | null;
+  owner: boolean;
+  createdAt: string;
+}
 
 /**
  * Saves a report and returns its id, or null if Redis isn't configured.
@@ -77,6 +89,13 @@ export async function saveReport(data: ReportData, { owner = false } = {}): Prom
   if (owner) await redis.set(`report:${id}`, report);
   else await redis.set(`report:${id}`, report, { ex: KEEP_FOR_SECONDS });
 
+  if (data.site) {
+    const entry: AuditLogEntry = { id, domain: data.site.domain, score: data.audit?.overallScore ?? null, owner, createdAt };
+    await redis
+      .lpush(LOG_KEY, entry)
+      .then(() => redis.ltrim(LOG_KEY, 0, LOG_KEEP - 1))
+      .catch((err) => console.error("[reports] audit log not updated:", err));
+  }
   if (data.audit && data.site && data.site.domain !== SITE.demoSiteDomain) {
     await recordAnonymously(data.audit, createdAt).catch((err) => console.error("[reports] homepage numbers not updated:", err));
   }
@@ -93,6 +112,13 @@ async function recordAnonymously(audit: GrowthAuditResult, createdAt: string) {
   await redis.ltrim(ANON_KEY, 0, ANON_KEEP - 1);
   await redis.hincrby(TOTALS_KEY, "audits", 1);
   await redis.hincrby(TOTALS_KEY, "scoreSum", audit.overallScore);
+}
+
+/** The newest audits with their websites, for the owner's /stats page only. */
+export async function listAuditLog(limit = 50): Promise<AuditLogEntry[]> {
+  const redis = getRedis();
+  if (!redis) return [];
+  return redis.lrange<AuditLogEntry>(LOG_KEY, 0, limit - 1);
 }
 
 /** The homepage numbers: how many websites were audited, their average score and the three newest results. */

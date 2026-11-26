@@ -29,6 +29,7 @@ interface Stats {
   days: { date: string; counts: Counts }[];
   totals: Counts;
   leads: { id: string; email: string; domain: string | null; reportId: string | null; createdAt: string }[];
+  audits?: { id: string; domain: string; score: number | null; owner: boolean; createdAt: string }[];
 }
 
 const CODE_KEY = "growth-audit-stats-code"; // kept for this browser tab only
@@ -91,14 +92,14 @@ export default function StatsPage() {
             className="flex max-w-md flex-col gap-3 sm:flex-row"
           >
             <label htmlFor="stats-code" className="sr-only">
-              Access code
+              Admin code
             </label>
             <input
               id="stats-code"
               type="password"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="Access code"
+              placeholder="Admin code"
               required
               className="flex-1 rounded-lg border-2 border-ink/20 bg-white px-4 py-3 outline-none focus:border-ink"
             />
@@ -179,6 +180,49 @@ function Dashboard({ stats }: { stats: Stats }) {
           LinkedIn clicks: {t.cta_quickwins} on the quick-wins offer, {t.cta_contentplan} on the content-plan offer, {t.cta_contact ?? 0} on the
           contact buttons. Emails left: {emails}. Reports shared: {t.link_copy} links copied, {t.share_linkedin ?? 0} on LinkedIn, {t.share_x ?? 0} on X. Your own audits: {t.owner_audit}.
         </p>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Latest audits</h2>
+          <p className="mt-1 text-sm text-ink-soft">The newest 50, with their websites. Only you can see this; the homepage shows them without names.</p>
+        </div>
+        {!stats.audits?.length ? (
+          <p className="rounded-xl border border-ink/10 bg-white p-5 text-sm text-ink-soft">No audits yet.</p>
+        ) : (
+          <div className="max-h-[28rem] overflow-auto rounded-xl border border-ink/10 bg-white">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 border-b border-ink/10 bg-white text-left text-ink-soft">
+                <tr>
+                  <th className="px-4 py-2.5 font-medium">When</th>
+                  <th className="px-4 py-2.5 font-medium">Website</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Score</th>
+                  <th className="px-4 py-2.5 font-medium">Run by</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-ink/5">
+                {stats.audits.map((a) => (
+                  <tr key={a.id}>
+                    <td className="whitespace-nowrap px-4 py-2 tabular-nums text-ink-soft">
+                      {new Date(a.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </td>
+                    <td className="px-4 py-2">
+                      <a href={`/r/${a.id}`} target="_blank" rel="noreferrer" className="font-medium underline underline-offset-4">
+                        {a.domain}
+                      </a>
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums">{a.score ?? "–"}</td>
+                    <td className="px-4 py-2">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${a.owner ? "bg-mist text-ink-soft" : "bg-marker text-ink"}`}>
+                        {a.owner ? "You" : "Visitor"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <section className="flex flex-col gap-4">

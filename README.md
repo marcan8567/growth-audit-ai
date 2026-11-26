@@ -101,7 +101,8 @@ npm run dev                  # http://localhost:3000
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | Only when `AI_PROVIDER=anthropic` |
 | `PAGESPEED_API_KEY` | Google PageSpeed Insights (free); without it, the speed step is skipped |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Saved reports, limits and stats; without them, reports aren't saved |
-| `ACCESS_CODE` | Unlimited audits, full reports and the `/stats` dashboard for the owner |
+| `ACCESS_CODE` | Unlimited audits and full reports; safe to share for demos |
+| `STATS_CODE` | Separate admin code for the private `/stats` dashboard (funnel, latest audits with websites, email leads) |
 | `LEAD_ALERT_WEBHOOK_URL` | Optional Discord or Slack webhook for lead alerts |
 
 ## Project structure
