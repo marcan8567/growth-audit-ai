@@ -25,7 +25,7 @@ export default async function Image() {
             <span style={{ background: MARKER, padding: "0 12px", marginLeft: -12 }}>Get its growth audit.</span>
           </div>
         </div>
-        <div style={{ display: "flex", fontSize: 30, color: "#4a5468" }}>Scores, Google speed data, brand voice, LinkedIn and X posts, automation plan. In about a minute.</div>
+        <div style={{ display: "flex", fontSize: 30, color: "#4a5468" }}>Scores, speed, keywords, brand voice, posts, automations. In a minute.</div>
       </div>
     ),
     { ...size, fonts },

@@ -6,7 +6,7 @@
 
 **Paste a company website. Get its growth audit in about a minute.**
 
-Scores for six growth areas, Google speed data, the brand voice, ready-to-post LinkedIn and X posts and a marketing automation plan, built only from what is on the company's public website.
+Scores for six growth areas, Google speed data, keyword focus, the brand voice, ready-to-post LinkedIn and X posts and a marketing automation plan, built only from what is on the company's public website. Optionally compared with up to two competitors, in English, Spanish or German, and saved as a PDF.
 
 **Live:** [growth-audit-ai.vercel.app](https://growth-audit-ai.vercel.app) · **Sample report:** [Stryon Labs, a fictional agency](https://growth-audit-ai.vercel.app/r/sWsQzanhu5) · **2-minute demo:** [video on LinkedIn](https://www.linkedin.com/posts/marc-cantacuzene_growthmarketing-aiautomation-marketingautomation-ugcPost-7531748839616266240-ltMZ/) · **How it's built:** [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)
 

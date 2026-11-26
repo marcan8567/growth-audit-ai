@@ -50,9 +50,9 @@ export default async function Home() {
               <span className="block text-balance">Get its growth audit.</span>
             </h1>
             <p className="mt-6 max-w-[56ch] text-lg leading-relaxed text-ink-soft">
-              In about a minute: scores for six growth areas, Google speed data, the brand voice, two ready-to-post
-              social media posts and a marketing automation plan. Built only from what is on the company&apos;s public
-              website.
+              In about a minute: scores for six growth areas, Google speed data, keywords, the brand voice, two
+              ready-to-post social media posts and a marketing automation plan. Optionally compared with up to two
+              competitors, in English, Spanish or German.
             </p>
 
             <form action="/audit" method="get" className="mt-10 max-w-xl">
@@ -352,6 +352,11 @@ const COVERS = [
     text: "Google PageSpeed measures how fast the site loads on phones, using real visitor data where Google has it.",
   },
   {
+    term: "Keywords",
+    icon: "search",
+    text: "The search phrases the site is built around, where each one appears (checked in code), and five worth adding next.",
+  },
+  {
     term: "Brand voice",
     icon: "voice",
     text: "Tone, audience, positioning and the words the company uses, so new content sounds like them.",
@@ -367,15 +372,42 @@ const COVERS = [
     text: "The three marketing workflows most worth automating, with what starts them, the steps, the tools and where AI helps.",
   },
   {
-    term: "A link to share",
+    term: "Competitor comparison",
+    icon: "compare",
+    text: "Optional: add up to two competitors and see the six areas side by side, with who leads where.",
+  },
+  {
+    term: "In your language",
+    icon: "globe",
+    text: "The whole report in English, Spanish or German. Quotes stay in the website's own words, so they can still be checked.",
+  },
+  {
+    term: "Share it or save it",
     icon: "link",
-    text: "Every report gets its own page, so you can send it to a colleague or a client.",
+    text: "Every report gets its own page to send to a colleague or a client, and saves as a clean PDF.",
   },
 ] as const;
 
 /** Line icons for "What the report covers", drawn in the logo's ink on a yellow tile. */
 function CoverIcon({ name }: { name: (typeof COVERS)[number]["icon"] }) {
   const paths: Record<typeof name, React.ReactNode> = {
+    search: (
+      <>
+        <circle cx="11" cy="11" r="6" />
+        <path d="m20 20-4.5-4.5" />
+      </>
+    ),
+    compare: (
+      <>
+        <path d="M5 20V10M10 20V5M15 20v-8M20 20v-5" />
+      </>
+    ),
+    globe: (
+      <>
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M3.5 12h17M12 3.5c2.4 2.4 3.5 5.3 3.5 8.5s-1.1 6.1-3.5 8.5c-2.4-2.4-3.5-5.3-3.5-8.5s1.1-6.1 3.5-8.5z" />
+      </>
+    ),
     score: (
       <>
         <path d="M12 3a9 9 0 1 0 9 9" />
