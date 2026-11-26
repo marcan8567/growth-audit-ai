@@ -76,6 +76,21 @@ export default async function Home() {
               </div>
               <p className="mt-3 text-sm text-ink-soft">Free for 3 websites a day. No sign-up.</p>
             </form>
+            {SITE.demoVideoUrl && (
+              <a
+                href={SITE.demoVideoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="group mt-8 inline-flex items-center gap-3 rounded-full py-1 pr-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-marker text-ink transition-transform group-hover:scale-110 motion-reduce:transition-none">
+                  <svg viewBox="0 0 24 24" className="ml-0.5 h-4 w-4" fill="currentColor" aria-hidden="true">
+                    <path d="M8 5.5v13l11-6.5z" />
+                  </svg>
+                </span>
+                <span className="underline-offset-4 group-hover:underline">Watch the 2-minute demo</span>
+              </a>
+            )}
           </div>
 
           <div className="lg:col-span-5">

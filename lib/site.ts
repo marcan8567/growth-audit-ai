@@ -5,6 +5,8 @@ export const SITE = {
   docsUrl: "https://github.com/marcan8567/growth-audit-ai/blob/main/docs/HOW-IT-WORKS.md",
   /** Where visitors ask for the full content plan. The call to action is hidden while this is empty. */
   linkedinUrl: "https://www.linkedin.com/in/marc-cantacuzene/",
+  /** The 2-minute demo video (a LinkedIn post). The homepage link is hidden while this is empty. */
+  demoVideoUrl: "https://www.linkedin.com/posts/marc-cantacuzene_growthmarketing-aiautomation-marketingautomation-ugcPost-7531748839616266240-ltMZ/",
   /** The fictional company used for the sample report and demo video (repo: marcan8567/stryon-labs). */
   demoSiteDomain: "stryon-labs.vercel.app",
   /** The saved report shown as the homepage sample: an audit of the demo site (saved with the access code, so it never expires). */
