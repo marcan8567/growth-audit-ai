@@ -252,7 +252,7 @@ function AuditsSoFar({ overview }: { overview: AuditOverview }) {
                   {a.weakest && (
                     <div className="mt-4">
                       <p className="text-xs text-white/50">Weakest area</p>
-                      <p className="mt-1.5 inline-block rounded-full bg-marker px-2.5 py-0.5 text-xs font-semibold text-ink">{a.weakest}</p>
+                      <p className="mt-1.5 rounded-xl bg-marker px-3 py-1.5 text-center text-xs font-semibold leading-snug text-ink">{a.weakest}</p>
                     </div>
                   )}
                 </li>
