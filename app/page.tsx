@@ -5,6 +5,7 @@ import { track } from "@/lib/store/stats";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { ContactCta } from "@/components/contact-cta";
+import { LangPicker } from "@/components/lang-picker";
 import { Testimonials } from "@/components/testimonials";
 
 // The sample report is read from Redis on each visit (one small, fast read; well within Upstash's free tier).
@@ -75,6 +76,9 @@ export default async function Home() {
                 <button className="rounded-lg bg-ink px-6 py-3.5 text-lg font-semibold text-white hover:bg-ink/85 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
                   Run audit
                 </button>
+              </div>
+              <div className="mt-4">
+                <LangPicker />
               </div>
               <p className="mt-3 text-sm text-ink-soft">Free for 3 websites a day. No sign-up.</p>
             </form>

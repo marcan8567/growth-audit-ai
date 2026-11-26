@@ -1,4 +1,5 @@
 import type { ProgressEvent, StepId } from "@/lib/events";
+import { parseLang } from "@/lib/i18n";
 import { runSiteChecks } from "@/lib/reader/checks";
 import { summarizeWebsite } from "@/lib/reader/format";
 import { readWebsite } from "@/lib/reader/read-website";
@@ -33,7 +34,7 @@ export const maxDuration = 180;
  * doesn't throw away the rest of the report.
  */
 export async function POST(request: Request) {
-  let body: { url?: unknown; accessCode?: unknown };
+  let body: { url?: unknown; accessCode?: unknown; lang?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -56,8 +57,11 @@ export async function POST(request: Request) {
   // Funnel count; the owner's own audits are kept separate so they don't distort it.
   await track(owner ? "owner_audit" : "audit_started");
 
+  // The report language (English, Spanish or German); anything else falls back to English.
+  const lang = parseLang(body.lang);
+
   // Collected as the steps finish, then saved so the report gets its own link.
-  const report: ReportData = {};
+  const report: ReportData = { lang };
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
@@ -95,7 +99,7 @@ export async function POST(request: Request) {
       try {
         // 0. Google PageSpeed takes 10–30 seconds, so it starts straight away, alongside reading the website.
         const speed: Promise<PageSpeedResult | null> = isPageSpeedConfigured()
-          ? step("speed", () => fetchPageSpeed(normalizeInputUrl(url).href))
+          ? step("speed", () => fetchPageSpeed(normalizeInputUrl(url).href, lang))
           : (send({ type: "step", step: "speed", status: "skipped", message: "Not configured (no Google PageSpeed API key)." }),
             Promise.resolve(null));
 
@@ -109,20 +113,20 @@ export async function POST(request: Request) {
           send({ type: "error", step: "read", message: err instanceof Error ? err.message : "Couldn't read the website." });
           return;
         }
-        const checks = runSiteChecks(site);
+        const checks = runSiteChecks(site, lang);
         report.site = summarizeWebsite(site);
         report.checks = checks;
         send({ type: "step", step: "read", status: "done", data: { site: report.site, checks }, ms: Date.now() - started });
 
         // 2 + 3. The AI steps. The content pack waits only for the brand voice, not for the others.
         // The audit waits for Google's speed data, so its scores can use it (it runs without it if that failed).
-        const brandVoice = step("brandVoice", () => runBrandVoice(site));
+        const brandVoice = step("brandVoice", () => runBrandVoice(site, lang));
         await Promise.all([
-          speed.then((s) => step("audit", () => runGrowthAudit(site, [...checks, ...(s?.checks ?? [])]))),
-          step("automation", () => runAutomationPlan(site, checks)),
-          step("keywords", () => runKeywords(site)),
+          speed.then((s) => step("audit", () => runGrowthAudit(site, [...checks, ...(s?.checks ?? [])], lang))),
+          step("automation", () => runAutomationPlan(site, checks, lang)),
+          step("keywords", () => runKeywords(site, lang)),
           brandVoice.then(async (voice) => {
-            if (voice) await step("contentPack", () => runContentPack(site, voice));
+            if (voice) await step("contentPack", () => runContentPack(site, voice, lang));
             else send({ type: "step", step: "contentPack", status: "error", message: "Skipped, because the brand voice step failed." });
           }),
         ]);

@@ -10,6 +10,8 @@ import type { ReportData } from "@/lib/store/reports";
 import { trackClick } from "@/lib/track-client";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
+import { LangPicker } from "@/components/lang-picker";
+import { parseLang, type Lang } from "@/lib/i18n";
 
 type Status = "idle" | "running" | "done" | "error" | "skipped";
 
@@ -29,6 +31,7 @@ const IDLE: Record<StepId, Status> = { speed: "idle", read: "idle", brandVoice: 
 export default function AuditPage() {
   const [url, setUrl] = useState("");
   const [accessCode, setAccessCode] = useState("");
+  const [lang, setLang] = useState<Lang>("en");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Record<StepId, Status>>(IDLE);
   const [timing, setTiming] = useState<Partial<Record<StepId, number>>>({});
@@ -43,24 +46,27 @@ export default function AuditPage() {
   // Coming from the homepage form (/audit?url=…): fill in the address and start straight away.
   // The address is then removed from the browser bar, so reloading the page doesn't start another audit.
   useEffect(() => {
-    const fromHomepage = new URLSearchParams(window.location.search).get("url");
+    const params = new URLSearchParams(window.location.search);
+    const fromHomepage = params.get("url");
+    const langFromHomepage = parseLang(params.get("lang"));
+    setLang(langFromHomepage);
     if (!fromHomepage) return;
     window.history.replaceState(null, "", "/audit");
     setUrl(fromHomepage);
-    void startAudit(fromHomepage);
+    void startAudit(fromHomepage, langFromHomepage);
     // Runs once on page load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function runAudit(e: React.FormEvent) {
     e.preventDefault();
-    void startAudit(url);
+    void startAudit(url, lang);
   }
 
-  async function startAudit(url: string) {
+  async function startAudit(url: string, lang: Lang) {
     setBusy(true);
     setError(null);
-    setResults({});
+    setResults({ lang }); // so the report's labels appear in the chosen language from the first section
     setReportId(null);
     setTiming({});
     setStepNotes({});
@@ -73,7 +79,7 @@ export default function AuditPage() {
       const res = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, accessCode }),
+        body: JSON.stringify({ url, accessCode, lang }),
       });
       if (!res.ok || !res.body) {
         const data = await res.json().catch(() => ({}));
@@ -174,6 +180,9 @@ export default function AuditPage() {
             {busy ? "Running…" : "Run audit"}
           </button>
         </form>
+        <div className="-mt-6">
+          <LangPicker value={lang} onChange={setLang} />
+        </div>
   
         {startedAt && (
           <Progress

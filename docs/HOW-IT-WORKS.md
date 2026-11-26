@@ -233,6 +233,21 @@ A fast AI step names the 3 to 6 search phrases the website is built around and s
 
 **Next step if needed:** add a "Google position" and "searches per month" column from a search-data API; the table is built for it.
 
+## 19. Reports in English, Spanish or German (`lib/i18n.ts`, `lib/report-text.ts`)
+
+A "Report language" choice on the form. The whole report comes back in that language.
+
+| Part | How |
+| --- | --- |
+| **AI text** | One extra instruction is added to the end of each step's prompt (`languageRule` in `prompts/shared.ts`), so the system prompts stay identical. JSON keys and fixed values stay English, so the Zod schemas don't change |
+| **Quotes** | Stay word for word in the website's own language, never translated, so the grounding check still works on a Spanish report of an English site |
+| **Keywords** | Current keywords stay as written on the site (code checks them); suggestions use what people in Spain or Germany actually search for |
+| **Code checks and speed checks** | Written by code in the chosen language (`lib/reader/check-text.ts`) |
+| **Report labels, share card, post previews** | One table of texts per language (`lib/report-text.ts`); even the LinkedIn and X buttons in the previews follow the language ("Recomendar", "Gefällt mir") |
+| **Saved with the report** | `lang` is stored, so a shared link opens in the same language; older reports have none and stay English |
+
+**Talking point:** "Adding a language didn't touch the prompts or schemas: one instruction, a text table, and the quote check still works because quotes are never translated."
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.

@@ -25,7 +25,16 @@ interface Props {
   brand: Brand;
   domain: string;
   socialLinks: SocialLink[];
+  /** The report language; the platforms' own buttons are shown in it, as a user in that country would see them. */
+  lang?: "en" | "es" | "de";
 }
+
+// The platforms' own button labels, as they appear in each language.
+const UI = {
+  en: { now: "Now", nowX: "now", follow: "+ Follow", seeMore: "…see more", seeMoreFb: "See more", like: "Like", comment: "Comment", repost: "Repost", send: "Send", share: "Share" },
+  es: { now: "Ahora", nowX: "ahora", follow: "+ Seguir", seeMore: "…ver más", seeMoreFb: "Ver más", like: "Recomendar", comment: "Comentar", repost: "Compartir", send: "Enviar", share: "Compartir" },
+  de: { now: "Jetzt", nowX: "jetzt", follow: "+ Folgen", seeMore: "…mehr anzeigen", seeMoreFb: "Mehr anzeigen", like: "Gefällt mir", comment: "Kommentieren", repost: "Reposten", send: "Senden", share: "Teilen" },
+};
 
 export function SocialPostPreview(props: Props) {
   switch (props.post.platform) {
@@ -52,7 +61,8 @@ export function postText(post: PreviewPost): string {
 
 const SYSTEM_FONT = { fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' };
 
-function LinkedInPost({ post, brand, domain }: Props) {
+function LinkedInPost({ post, brand, domain, lang = "en" }: Props) {
+  const ui = UI[lang];
   return (
     <div style={SYSTEM_FONT} className="flex h-full flex-col overflow-hidden rounded-lg border border-[#e0dfdc] bg-white text-[13px] text-[#191919]">
       <div className="flex items-start gap-2 px-4 pt-3">
@@ -61,30 +71,30 @@ function LinkedInPost({ post, brand, domain }: Props) {
           <p className="truncate font-semibold">{brand.name}</p>
           <p className="truncate text-[12px] text-[#666]">{domain}</p>
           <p className="mt-0.5 flex items-center gap-1 text-[12px] text-[#666]">
-            Now <Globe />
+            {ui.now} <Globe />
           </p>
         </div>
-        <span className="shrink-0 text-[13px] font-semibold text-[#0a66c2]">+ Follow</span>
+        <span className="shrink-0 text-[13px] font-semibold text-[#0a66c2]">{ui.follow}</span>
       </div>
       {/* Grows to fill the card, so the action bar sits at the bottom when the X post next to it is taller */}
       <div className="flex-1">
-        <ExpandableText post={post} tagColor="text-[#0a66c2]" moreLabel="…see more" className="px-4 pt-2 pb-2" />
+        <ExpandableText post={post} tagColor="text-[#0a66c2]" moreLabel={ui.seeMore} className="px-4 pt-2 pb-2" />
         {hasVisual(post) && <Visual post={post} brand={brand} domain={domain} aspect="aspect-[1.91/1]" />}
       </div>
       <ActionBar
         color="text-[#666]"
         items={[
-          ["Like", <ThumbIcon key="i" />],
-          ["Comment", <CommentIcon key="i" />],
-          ["Repost", <RepostIcon key="i" />],
-          ["Send", <SendIcon key="i" />],
+          [ui.like, <ThumbIcon key="i" />],
+          [ui.comment, <CommentIcon key="i" />],
+          [ui.repost, <RepostIcon key="i" />],
+          [ui.send, <SendIcon key="i" />],
         ]}
       />
     </div>
   );
 }
 
-function XPost({ post, brand, domain, socialLinks }: Props) {
+function XPost({ post, brand, domain, socialLinks, lang = "en" }: Props) {
   const handle = handleFrom(socialLinks, "X", brand.name);
   return (
     <div className="h-full">
@@ -94,7 +104,7 @@ function XPost({ post, brand, domain, socialLinks }: Props) {
           <p className="flex items-center gap-1 truncate leading-5">
             <span className="truncate font-bold">{brand.name}</span>
             <span className="truncate text-[#536471]">@{handle}</span>
-            <span className="text-[#536471]">· now</span>
+            <span className="text-[#536471]">· {UI[lang].nowX}</span>
           </p>
           <div className="mt-0.5 whitespace-pre-line leading-5">
             <PostText post={post} tagColor="text-[#1d9bf0]" />

@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { ogFonts } from "@/lib/og-font";
 import { loadReport } from "@/lib/store/reports";
+import { REPORT_TEXT } from "@/lib/report-text";
 
 /**
  * The preview card shown when a report link is shared (LinkedIn, Slack, WhatsApp, X…):
@@ -21,7 +22,8 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const domain = report?.site?.domain ?? "Website";
   const name = report?.site?.brand?.name ?? domain;
   const score = report?.audit?.overallScore ?? null;
-  const grade = report?.audit?.grade ?? "";
+  const t = REPORT_TEXT[report?.lang ?? "en"];
+  const grade = report?.audit?.grade ? (t.grade[report.audit.grade] ?? report.audit.grade) : "";
   const opportunity = trim(report?.audit?.biggestOpportunity ?? "", 150);
   const ring = score === null ? "#cbd2dc" : score >= 70 ? "#10b981" : score >= 45 ? "#f59e0b" : "#ef4444";
 
@@ -36,7 +38,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             <svg width="40" height="40" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="#172033" strokeWidth="5" strokeLinecap="round" strokeDasharray="42.85 69.12" transform="rotate(-90 16 16)" /><circle cx="16" cy="16" r="11" fill="none" stroke="#ffe15a" strokeWidth="5" strokeLinecap="round" strokeDasharray="9.68 69.12" transform="rotate(176.4 16 16)" /></svg>
             Growth Audit AI
           </div>
-          <div style={{ display: "flex", fontSize: 24, color: "#4a5468" }}>Growth audit</div>
+          <div style={{ display: "flex", fontSize: 24, color: "#4a5468" }}>{t.cardLabel}</div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 64, marginTop: 56, flex: 1 }}>
@@ -58,7 +60,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             </svg>
             <div style={{ position: "absolute", top: 0, left: 0, width: 260, height: 260, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
               <div style={{ display: "flex", fontSize: 96, fontWeight: 700, lineHeight: 1 }}>{score ?? "–"}</div>
-              <div style={{ display: "flex", fontSize: 24, color: "#4a5468" }}>out of 100</div>
+              <div style={{ display: "flex", fontSize: 24, color: "#4a5468" }}>{t.outOf100}</div>
             </div>
           </div>
 
@@ -67,7 +69,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             <div style={{ display: "flex", fontSize: 28, color: "#4a5468", marginTop: 8 }}>{grade ? `${domain}: ${grade}` : domain}</div>
             {opportunity && (
               <div style={{ display: "flex", flexDirection: "column", marginTop: 32, borderLeft: `8px solid ${MARKER}`, paddingLeft: 20 }}>
-                <div style={{ display: "flex", fontSize: 22, fontWeight: 700 }}>Biggest opportunity</div>
+                <div style={{ display: "flex", fontSize: 22, fontWeight: 700 }}>{t.biggestOpportunity}</div>
                 <div style={{ display: "flex", fontSize: 28, lineHeight: 1.35, marginTop: 8 }}>
                   {opportunity}
                 </div>

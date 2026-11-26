@@ -1,3 +1,5 @@
+import type { Lang } from "@/lib/i18n";
+import { CHECK_TEXT } from "./check-text";
 import type { WebsiteData } from "./types";
 
 /**
@@ -16,89 +18,60 @@ export interface SiteCheck {
   detail: string;
 }
 
-export function runSiteChecks(site: WebsiteData): SiteCheck[] {
+export function runSiteChecks(site: WebsiteData, lang: Lang = "en"): SiteCheck[] {
+  const T = CHECK_TEXT[lang];
   const home = site.pages[0];
   const kinds = new Set(site.pages.map((p) => p.kind));
   const checks: SiteCheck[] = [];
   const add = (id: string, label: string, status: CheckStatus, detail: string) =>
     checks.push({ id, label, status, detail });
 
-  add(
-    "https",
-    "Secure connection (HTTPS)",
-    site.finalUrl.startsWith("https://") ? "pass" : "fail",
-    site.finalUrl.startsWith("https://") ? "The site loads over HTTPS." : "The site does not load over HTTPS.",
-  );
+  const https = site.finalUrl.startsWith("https://");
+  add("https", T.https.label, https ? "pass" : "fail", https ? T.https.pass : T.https.fail);
 
   const titleLength = home.title.length;
   add(
     "title",
-    "Homepage title",
+    T.title.label,
     !titleLength ? "fail" : titleLength >= 30 && titleLength <= 65 ? "pass" : "warn",
-    !titleLength
-      ? "The homepage has no <title>."
-      : `${titleLength} characters${titleLength < 30 ? " (short; 30–65 is typical for search results)" : titleLength > 65 ? " (long; search results cut it off after about 65)" : ""}.`,
+    !titleLength ? T.title.missing : `${T.title.chars(titleLength)}${titleLength < 30 ? T.title.short : titleLength > 65 ? T.title.long : ""}.`,
   );
 
   const metaLength = home.metaDescription.length;
   add(
     "meta",
-    "Meta description",
+    T.meta.label,
     !metaLength ? "fail" : metaLength >= 70 && metaLength <= 160 ? "pass" : "warn",
-    !metaLength
-      ? "No meta description, so search engines choose their own snippet."
-      : `${metaLength} characters${metaLength < 70 ? " (short; 70–160 is typical)" : metaLength > 160 ? " (long; search results cut it off after about 160)" : ""}.`,
+    !metaLength ? T.meta.missing : `${T.meta.chars(metaLength)}${metaLength < 70 ? T.meta.short : metaLength > 160 ? T.meta.long : ""}.`,
   );
 
   const h1s = home.headings.filter((h) => h.level === 1).length;
-  add(
-    "h1",
-    "One main heading (H1)",
-    h1s === 1 ? "pass" : h1s === 0 ? "fail" : "warn",
-    h1s === 1 ? "The homepage has exactly one H1." : h1s === 0 ? "The homepage has no H1." : `The homepage has ${h1s} different H1s.`,
-  );
+  add("h1", T.h1.label, h1s === 1 ? "pass" : h1s === 0 ? "fail" : "warn", h1s === 1 ? T.h1.one : h1s === 0 ? T.h1.none : T.h1.many(h1s));
 
   add(
     "cta",
-    "Calls to action on the homepage",
+    T.cta.label,
     home.ctas.length >= 2 ? "pass" : home.ctas.length === 1 ? "warn" : "fail",
-    home.ctas.length ? `Found: ${home.ctas.slice(0, 5).join(", ")}${home.ctas.length > 5 ? "…" : ""}` : "No clear call to action found.",
+    home.ctas.length ? T.cta.found(`${home.ctas.slice(0, 5).join(", ")}${home.ctas.length > 5 ? "…" : ""}`) : T.cta.none,
   );
 
   add(
     "content-depth",
-    "Homepage content depth",
+    T.depth.label,
     home.wordCount >= 300 ? "pass" : home.wordCount >= 120 ? "warn" : "fail",
-    `${home.wordCount} words of readable text${home.wordCount < 120 ? " (the site may build its content with JavaScript, which this reader can't run)" : ""}.`,
+    `${T.depth.words(home.wordCount)}${home.wordCount < 120 ? T.depth.js : ""}.`,
   );
 
-  add(
-    "pricing",
-    "Pricing page",
-    kinds.has("pricing") ? "pass" : "warn",
-    kinds.has("pricing") ? "A pricing page is linked from the homepage." : "No pricing page linked from the homepage.",
-  );
-
-  add(
-    "blog",
-    "Blog or resources",
-    kinds.has("blog") ? "pass" : "warn",
-    kinds.has("blog") ? "A blog or resources section is linked." : "No blog or resources section linked from the homepage.",
-  );
-
-  add(
-    "about",
-    "About page",
-    kinds.has("about") ? "pass" : "warn",
-    kinds.has("about") ? "An about page is linked." : "No about page linked from the homepage.",
-  );
+  add("pricing", T.pricing.label, kinds.has("pricing") ? "pass" : "warn", kinds.has("pricing") ? T.pricing.pass : T.pricing.fail);
+  add("blog", T.blog.label, kinds.has("blog") ? "pass" : "warn", kinds.has("blog") ? T.blog.pass : T.blog.fail);
+  add("about", T.about.label, kinds.has("about") ? "pass" : "warn", kinds.has("about") ? T.about.pass : T.about.fail);
 
   const socials = site.socialLinks.length;
   add(
     "social",
-    "Social profiles linked",
+    T.social.label,
     socials >= 2 ? "pass" : socials === 1 ? "warn" : "fail",
-    socials ? site.socialLinks.map((s) => s.platform).join(", ") : "No social profiles linked from the website.",
+    socials ? site.socialLinks.map((s) => s.platform).join(", ") : T.social.none,
   );
 
   return checks;

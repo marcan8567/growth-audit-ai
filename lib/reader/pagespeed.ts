@@ -1,3 +1,5 @@
+import type { Lang } from "@/lib/i18n";
+import { CHECK_TEXT } from "./check-text";
 import type { SiteCheck } from "./checks";
 
 /**
@@ -40,7 +42,7 @@ export function isPageSpeedConfigured(): boolean {
   return Boolean(process.env.PAGESPEED_API_KEY);
 }
 
-export async function fetchPageSpeed(url: string): Promise<PageSpeedResult> {
+export async function fetchPageSpeed(url: string, lang: Lang = "en"): Promise<PageSpeedResult> {
   const key = process.env.PAGESPEED_API_KEY;
   if (!key) throw new Error("Speed data isn't available (no PageSpeed API key configured).");
 
@@ -109,7 +111,7 @@ export async function fetchPageSpeed(url: string): Promise<PageSpeedResult> {
     },
     field,
   };
-  return { ...result, checks: speedChecks(result) };
+  return { ...result, checks: speedChecks(result, lang) };
 }
 
 /**
@@ -117,17 +119,18 @@ export async function fetchPageSpeed(url: string): Promise<PageSpeedResult> {
  * (Core Web Vitals: LCP ≤ 2.5s good, ≤ 4s needs work; CLS ≤ 0.1 good, ≤ 0.25 needs work).
  * Real-user data is preferred over the lab test when Google has it.
  */
-function speedChecks(r: Omit<PageSpeedResult, "checks">): SiteCheck[] {
+function speedChecks(r: Omit<PageSpeedResult, "checks">, lang: Lang): SiteCheck[] {
+  const T = CHECK_TEXT[lang].speed;
   const checks: SiteCheck[] = [];
-  const source = r.field ? "real Chrome users" : "Google's mobile test";
+  const source = r.field ? T.realUsers : T.mobileTest;
 
   const perf = r.scores.performance;
   if (perf !== null) {
     checks.push({
       id: "speed-score",
-      label: "Mobile performance score (Google)",
+      label: T.perfLabel,
       status: perf >= 90 ? "pass" : perf >= 50 ? "warn" : "fail",
-      detail: `${perf}/100 on Google's mobile test${perf < 50 ? " (slow pages lose visitors and rank lower)" : ""}.`,
+      detail: `${T.perfDetail(perf)}${perf < 50 ? T.perfSlow : ""}.`,
     });
   }
 
@@ -135,9 +138,9 @@ function speedChecks(r: Omit<PageSpeedResult, "checks">): SiteCheck[] {
   if (lcp !== null) {
     checks.push({
       id: "lcp",
-      label: "Main content loads quickly (LCP)",
+      label: T.lcpLabel,
       status: lcp <= 2500 ? "pass" : lcp <= 4000 ? "warn" : "fail",
-      detail: `${(lcp / 1000).toFixed(1)}s for ${source} (Google's target: 2.5s or less).`,
+      detail: T.target(`${(lcp / 1000).toFixed(1)}s`, source, "≤ 2.5s"),
     });
   }
 
@@ -145,9 +148,9 @@ function speedChecks(r: Omit<PageSpeedResult, "checks">): SiteCheck[] {
   if (cls !== null) {
     checks.push({
       id: "cls",
-      label: "Page doesn't jump while loading (CLS)",
+      label: T.clsLabel,
       status: cls <= 0.1 ? "pass" : cls <= 0.25 ? "warn" : "fail",
-      detail: `${cls.toFixed(2)} for ${source} (Google's target: 0.1 or less).`,
+      detail: T.target(cls.toFixed(2), source, "≤ 0.1"),
     });
   }
 
@@ -155,9 +158,9 @@ function speedChecks(r: Omit<PageSpeedResult, "checks">): SiteCheck[] {
   if (inp !== null) {
     checks.push({
       id: "inp",
-      label: "Responds quickly to clicks (INP)",
+      label: T.inpLabel,
       status: inp <= 200 ? "pass" : inp <= 500 ? "warn" : "fail",
-      detail: `${inp}ms for real Chrome users (Google's target: 200ms or less).`,
+      detail: T.target(`${inp}ms`, T.realUsers, "≤ 200ms"),
     });
   }
 
@@ -165,7 +168,7 @@ function speedChecks(r: Omit<PageSpeedResult, "checks">): SiteCheck[] {
   if (seo !== null) {
     checks.push({
       id: "lighthouse-seo",
-      label: "Technical SEO (Google Lighthouse)",
+      label: T.seoLabel,
       status: seo >= 90 ? "pass" : seo >= 70 ? "warn" : "fail",
       detail: `${seo}/100.`,
     });

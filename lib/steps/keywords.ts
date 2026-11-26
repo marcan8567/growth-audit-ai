@@ -1,5 +1,7 @@
 import "server-only";
 import { runJsonStep } from "@/lib/ai/run-step";
+import { languageRule } from "@/prompts/shared";
+import type { Lang } from "@/lib/i18n";
 import { formatWebsiteForPrompt } from "@/lib/reader/format";
 import type { WebsiteData } from "@/lib/reader/types";
 import { KeywordsSchema, type KeywordsAnswer } from "@/lib/schemas/keywords";
@@ -28,11 +30,11 @@ export interface KeywordsResult {
  * each phrase really appears (title, main heading, headings, meta description, page addresses) and drops
  * "current" keywords that aren't on the site at all. These are not Google rankings.
  */
-export async function runKeywords(site: WebsiteData): Promise<KeywordsResult> {
+export async function runKeywords(site: WebsiteData, lang: Lang = "en"): Promise<KeywordsResult> {
   const answer = await runJsonStep({
     name: "Keywords",
     system: KEYWORDS_SYSTEM,
-    user: keywordsUserPrompt(formatWebsiteForPrompt(site)),
+    user: keywordsUserPrompt(formatWebsiteForPrompt(site)) + languageRule(lang),
     schema: KeywordsSchema,
     tier: "fast",
     maxTokens: 1_500,

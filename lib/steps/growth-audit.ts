@@ -1,5 +1,7 @@
 import "server-only";
 import { runJsonStep } from "@/lib/ai/run-step";
+import { languageRule } from "@/prompts/shared";
+import type { Lang } from "@/lib/i18n";
 import { formatChecksForPrompt, type SiteCheck } from "@/lib/reader/checks";
 import { formatWebsiteForPrompt } from "@/lib/reader/format";
 import type { WebsiteData } from "@/lib/reader/types";
@@ -26,11 +28,11 @@ export interface GrowthAuditResult {
 }
 
 /** Growth audit: the AI scores six categories; code orders them, averages them and checks every quote. */
-export async function runGrowthAudit(site: WebsiteData, checks: SiteCheck[]): Promise<GrowthAuditResult> {
+export async function runGrowthAudit(site: WebsiteData, checks: SiteCheck[], lang: Lang = "en"): Promise<GrowthAuditResult> {
   const audit = await runJsonStep({
     name: "Growth audit",
     system: GROWTH_AUDIT_SYSTEM,
-    user: growthAuditUserPrompt(formatWebsiteForPrompt(site), formatChecksForPrompt(checks)),
+    user: growthAuditUserPrompt(formatWebsiteForPrompt(site), formatChecksForPrompt(checks)) + languageRule(lang),
     schema: GrowthAuditSchema,
     tier: "smart",
     maxTokens: 4_000,

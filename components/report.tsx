@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { SiteCheck } from "@/lib/reader/checks";
 import type { WebsiteSummary } from "@/lib/reader/format";
 import type { PageSpeedResult } from "@/lib/reader/pagespeed";
@@ -13,6 +13,12 @@ import { postText, SocialPostPreview } from "@/components/social-post";
 import { SITE } from "@/lib/site";
 import { trackClick } from "@/lib/track-client";
 import type { ReportData } from "@/lib/store/reports";
+import { LOCALES, type Lang } from "@/lib/i18n";
+import { REPORT_TEXT, joinList, type ReportText } from "@/lib/report-text";
+
+// The report's language and texts, available to every part of the report.
+const TextContext = createContext<{ t: ReportText; lang: Lang }>({ t: REPORT_TEXT.en, lang: "en" });
+const useText = () => useContext(TextContext);
 
 /**
  * The full report. Used by the live audit page (sections appear as steps finish)
@@ -42,22 +48,25 @@ export function Report({
     ? { ...data.site, brand: { ...data.site.brand, iconUrl: data.site.brand.iconUrl && reportId ? `/api/logo/${reportId}` : null } }
     : data.site;
 
+  const lang: Lang = data.lang ?? "en";
+  const t = REPORT_TEXT[lang];
   const sections = [
-    audit && site && { id: "overview", label: "Overview" },
-    audit && { id: "scores", label: "Scores" },
-    audit && { id: "quick-wins", label: "Quick wins" },
-    checks && { id: "checks", label: "Checks" },
-    speed && { id: "speed", label: "Speed" },
-    keywords && { id: "keywords", label: "Keywords" },
-    brandVoice && { id: "brand-voice", label: "Brand voice" },
-    contentPack && { id: "posts", label: "Posts" },
-    automation && { id: "automations", label: "Automations" },
-    audit && reportId && { id: "contact", label: "Get help" },
+    audit && site && { id: "overview", label: t.menu.overview },
+    audit && { id: "scores", label: t.menu.scores },
+    audit && { id: "quick-wins", label: t.menu.quickWins },
+    checks && { id: "checks", label: t.menu.checks },
+    speed && { id: "speed", label: t.menu.speed },
+    keywords && { id: "keywords", label: t.menu.keywords },
+    brandVoice && { id: "brand-voice", label: t.menu.brandVoice },
+    contentPack && { id: "posts", label: t.menu.posts },
+    automation && { id: "automations", label: t.menu.automations },
+    audit && reportId && { id: "contact", label: t.menu.contact },
   ].filter(Boolean) as { id: string; label: string }[];
 
   if (!sections.length) return null;
 
   return (
+    <TextContext.Provider value={{ t, lang }}>
     <div className="flex flex-col gap-14 text-ink">
       {audit && site && <Cover audit={audit} site={site} createdAt={createdAt} shareUrl={shareUrl} reportId={reportId} />}
       {sections.length > 2 && <SectionMenu sections={sections} />}
@@ -72,8 +81,8 @@ export function Report({
       {automation && <Automations plan={automation} />}
       {audit && reportId && <LeadForm domain={site?.domain} reportId={reportId} />}
       {site && <Disclaimer domain={site.domain} name={site.brand?.name ?? site.domain} />}
-
     </div>
+    </TextContext.Provider>
   );
 }
 
@@ -91,17 +100,18 @@ function ShareButtons({ shareUrl, reportId, name, score }: { shareUrl: string; r
     else setUrl(shareUrl);
   }, [shareUrl]);
 
-  const text = `${name} scored ${score}/100 in this AI growth audit`;
+  const { t } = useText();
+  const text = t.shareText(name, score);
   const networks = [
     {
       id: "share_linkedin" as const,
-      label: "Share on LinkedIn",
+      label: t.shareOn("LinkedIn"),
       href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
       icon: "M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4v11H3zM9.5 9.75h3.8v1.5h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1v5.45h-4v-4.83c0-1.15-.02-2.63-1.6-2.63-1.6 0-1.85 1.25-1.85 2.55v4.91h-4z",
     },
     {
       id: "share_x" as const,
-      label: "Share on X",
+      label: t.shareOn("X"),
       href: `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       icon: "M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.78zm-1.08 16.17h1.7L7.4 4.73H5.58z",
     },
@@ -111,9 +121,9 @@ function ShareButtons({ shareUrl, reportId, name, score }: { shareUrl: string; r
     <div className="flex items-center gap-2">
       <CopyButton
         text={url}
-        label="Share report"
+        label={t.shareReport}
         className="rounded-lg border-2 border-ink px-4 py-2 text-sm font-semibold hover:bg-ink hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
-        copiedLabel="Link copied"
+        copiedLabel={t.linkCopied}
         onCopy={() => trackClick("link_copy", reportId)}
       />
       {url &&
@@ -152,8 +162,9 @@ function Cover({
   shareUrl?: string | null;
   reportId?: string | null;
 }) {
+  const { t, lang } = useText();
   const brand = site.brand ?? { name: nameFromDomain(site.domain), iconUrl: null, color: null };
-  const date = new Date(createdAt ?? Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const date = new Date(createdAt ?? Date.now()).toLocaleDateString(LOCALES[lang], { day: "numeric", month: "long", year: "numeric" });
   return (
     <section id="overview" className="scroll-mt-24 rounded-2xl border border-ink/10 bg-white p-6 shadow-[0_20px_40px_-28px_rgba(23,32,51,0.35)] sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -162,7 +173,7 @@ function Cover({
           <div>
             <p className="text-2xl font-bold leading-tight tracking-tight">{brand.name}</p>
             <p className="text-sm text-ink-soft">
-              Automated AI analysis of {site.domain}, {date}
+              {t.analysisOf(site.domain, date)}
             </p>
           </div>
         </div>
@@ -173,14 +184,14 @@ function Cover({
         <div className="flex flex-col items-center">
           <ScoreRing value={audit.overallScore} size={140} stroke={12}>
             <span className={`text-5xl font-bold tracking-tight ${scoreText(audit.overallScore / 10)}`}>{audit.overallScore}</span>
-            <span className="text-xs text-ink-soft">out of 100</span>
+            <span className="text-xs text-ink-soft">{t.outOf100}</span>
           </ScoreRing>
-          <p className="mt-2 font-semibold">{audit.grade}</p>
+          <p className="mt-2 font-semibold">{t.grade[audit.grade] ?? audit.grade}</p>
         </div>
         <div>
           <p className="max-w-[62ch] leading-relaxed">{audit.summary}</p>
           <div className="mt-5 max-w-[62ch] border-l-4 border-marker pl-4">
-            <p className="text-sm font-semibold">Biggest opportunity</p>
+            <p className="text-sm font-semibold">{t.biggestOpportunity}</p>
             <p className="mt-1 font-medium leading-relaxed">{audit.biggestOpportunity}</p>
           </div>
         </div>
@@ -236,12 +247,13 @@ function SectionMenu({ sections }: { sections: { id: string; label: string }[] }
 /* ---------- Scores ---------- */
 
 function ScoreGrid({ audit }: { audit: GrowthAuditResult }) {
+  const { t } = useText();
   return (
-    <Section id="scores" title="Scores at a glance" subtitle="Each area scored from 0 to 10 by the AI; the overall score is calculated by code.">
+    <Section id="scores" title={t.scoresTitle} subtitle={t.scoresSubtitle}>
       <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {audit.categories.map((c) => (
           <li key={c.id} className="rounded-xl border border-ink/10 bg-white p-4">
-            <p className="text-sm leading-snug text-ink-soft">{c.label}</p>
+            <p className="text-sm leading-snug text-ink-soft">{t.category[c.id] ?? c.label}</p>
             <p className="mt-1">
               <span className={`text-3xl font-bold tracking-tight ${scoreText(c.score)}`}>{c.score}</span>
               <span className="text-ink-soft">/10</span>
@@ -257,18 +269,15 @@ function ScoreGrid({ audit }: { audit: GrowthAuditResult }) {
 }
 
 function ScoreDetails({ audit }: { audit: GrowthAuditResult }) {
+  const { t } = useText();
   return (
-    <Section
-      id="details"
-      title="Why each score"
-      subtitle={`Strengths, issues and the quotes behind them. ${audit.grounding.verifiedQuotes} of ${audit.grounding.totalQuotes} quotes were found word for word on the website.`}
-    >
+    <Section id="details" title={t.detailsTitle} subtitle={t.detailsSubtitle(audit.grounding.verifiedQuotes, audit.grounding.totalQuotes)}>
       <div className="divide-y divide-ink/10 rounded-xl border border-ink/10 bg-white">
         {audit.categories.map((c) => (
           <details key={c.id} className="group px-5 py-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
               <span>
-                <span className="font-semibold">{c.label}</span>
+                <span className="font-semibold">{t.category[c.id] ?? c.label}</span>
                 <span className="mt-0.5 block text-sm text-ink-soft">{c.verdict}</span>
               </span>
               <span className="flex shrink-0 items-center gap-3">
@@ -277,8 +286,8 @@ function ScoreDetails({ audit }: { audit: GrowthAuditResult }) {
               </span>
             </summary>
             <div className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
-              <List title="Strengths" items={c.strengths} />
-              <List title="Issues" items={c.issues} />
+              <List title={t.strengths} items={c.strengths} />
+              <List title={t.issues} items={c.issues} />
             </div>
             {c.evidence.length > 0 && (
               <ul className="mt-4 flex flex-col gap-2 text-sm">
@@ -286,7 +295,7 @@ function ScoreDetails({ audit }: { audit: GrowthAuditResult }) {
                   <li key={i} className="border-l-2 border-ink/15 pl-3 text-ink-soft">
                     <span className="italic">“{e.quote}”</span>{" "}
                     <span className={e.verified ? "text-emerald-700" : "text-amber-600"}>
-                      {e.verified ? "verified on the site" : "not found on the site"}
+                      {e.verified ? t.verified : t.notFound}
                     </span>
                   </li>
                 ))}
@@ -302,8 +311,9 @@ function ScoreDetails({ audit }: { audit: GrowthAuditResult }) {
 /* ---------- Quick wins ---------- */
 
 function QuickWins({ audit, domain, reportId }: { audit: GrowthAuditResult; domain?: string; reportId?: string | null }) {
+  const { t } = useText();
   return (
-    <Section id="quick-wins" title="Quick wins" subtitle="The changes most likely to grow leads and revenue, best first.">
+    <Section id="quick-wins" title={t.quickWinsTitle} subtitle={t.quickWinsSubtitle}>
       <ol className="flex flex-col gap-3">
         {audit.quickWins.map((w, i) => (
           <li key={i} className="flex gap-4 rounded-xl border border-ink/10 bg-white p-5">
@@ -311,8 +321,12 @@ function QuickWins({ audit, domain, reportId }: { audit: GrowthAuditResult; doma
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-semibold">{w.title}</span>
-                <Badge tone={levelTone(w.impact, "impact")}>Impact: {w.impact}</Badge>
-                <Badge tone={levelTone(w.effort, "effort")}>Effort: {w.effort}</Badge>
+                <Badge tone={levelTone(w.impact, "impact")}>
+                  {t.impact}: {t.level[w.impact] ?? w.impact}
+                </Badge>
+                <Badge tone={levelTone(w.effort, "effort")}>
+                  {t.effort}: {t.level[w.effort] ?? w.effort}
+                </Badge>
               </div>
               <p className="mt-1.5 leading-relaxed">{w.action}</p>
               <p className="mt-1 text-sm text-ink-soft">{w.why}</p>
@@ -332,6 +346,7 @@ function QuickWins({ audit, domain, reportId }: { audit: GrowthAuditResult; doma
  * browser, see lib/report-access.ts) with an offer to send the full list and help put it in place.
  */
 function HiddenQuickWins({ count, start, domain, reportId }: { count: number; start: number; domain?: string; reportId?: string | null }) {
+  const { t } = useText();
   return (
     <li className="relative">
       <div aria-hidden="true" className="pointer-events-none flex select-none flex-col gap-3 blur-[5px]">
@@ -339,22 +354,17 @@ function HiddenQuickWins({ count, start, domain, reportId }: { count: number; st
           <div key={i} className="flex gap-4 rounded-xl border border-ink/10 bg-white p-5">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">{start + i}</span>
             <div>
-              <span className="font-semibold">Placeholder fix title for this website</span>
-              <p className="mt-1.5">What to change, specific to this company, and where on the website.</p>
-              <p className="mt-1 text-sm text-ink-soft">The effect this is expected to have on growth.</p>
+              <span className="font-semibold">{t.placeholder[0]}</span>
+              <p className="mt-1.5">{t.placeholder[1]}</p>
+              <p className="mt-1 text-sm text-ink-soft">{t.placeholder[2]}</p>
             </div>
           </div>
         ))}
       </div>
       <div className="absolute inset-0 flex items-center justify-center p-3">
         <div className="max-w-md rounded-xl bg-ink p-5 text-center text-white shadow-lg">
-          <p className="font-semibold">
-            {count} more {count === 1 ? "fix" : "fixes"}
-            {domain ? ` for ${domain}` : ""}, ranked by impact
-          </p>
-          <p className="mt-1.5 text-sm leading-relaxed text-white/80">
-            Message me on LinkedIn and I&apos;ll send you the full list, and help you put the fixes in place.
-          </p>
+          <p className="font-semibold">{t.hiddenTitle(count, domain)}</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-white/80">{t.hiddenText}</p>
           {SITE.linkedinUrl && <LinkedInButton className="mt-3 px-4 py-2 text-sm" onClick={() => trackClick("cta_quickwins", reportId)} />}
         </div>
       </div>
@@ -365,18 +375,20 @@ function HiddenQuickWins({ count, start, domain, reportId }: { count: number; st
 /* ---------- Checks ---------- */
 
 function Checks({ checks, site }: { checks: SiteCheck[]; site: WebsiteSummary }) {
+  const { t } = useText();
   const problems = checks.filter((c) => c.status !== "pass").sort((a, b) => (a.status === "fail" ? -1 : 1) - (b.status === "fail" ? -1 : 1));
   const passed = checks.filter((c) => c.status === "pass");
   return (
     <Section
       id="checks"
-      title="Website checks"
-      subtitle={`Measured by code, not AI, on ${site.pages.length} page${site.pages.length === 1 ? "" : "s"}: ${site.pages.map((p) => p.kind).join(", ")}${
-        site.failedPages.length ? ` (${site.failedPages.length} could not be read)` : ""
-      }.`}
+      title={t.checksTitle}
+      subtitle={t.checksSubtitle(
+        site.pages.map((p) => t.pageKind[p.kind] ?? p.kind),
+        site.failedPages.length,
+      )}
     >
       <p className="text-lg font-semibold">
-        {passed.length} passed{problems.length ? `, ${problems.length} to fix` : ", nothing to fix"}
+        {t.passedSummary(passed.length, problems.length)}
       </p>
       {problems.length > 0 && <CheckList checks={problems} />}
       {passed.length > 0 && (
@@ -411,20 +423,19 @@ function CheckList({ checks }: { checks: SiteCheck[] }) {
 /* ---------- Speed ---------- */
 
 function Speed({ speed }: { speed: PageSpeedResult }) {
+  const { t } = useText();
   const scores: { label: string; value: number | null }[] = [
-    { label: "Performance", value: speed.scores.performance },
-    { label: "SEO", value: speed.scores.seo },
-    { label: "Accessibility", value: speed.scores.accessibility },
-    { label: "Best practices", value: speed.scores.bestPractices },
+    { label: t.speedScores.performance, value: speed.scores.performance },
+    { label: t.speedScores.seo, value: speed.scores.seo },
+    { label: t.speedScores.accessibility, value: speed.scores.accessibility },
+    { label: t.speedScores.bestPractices, value: speed.scores.bestPractices },
   ];
   const metrics = speed.checks.filter((c) => c.id !== "speed-score" && c.id !== "lighthouse-seo");
   return (
     <Section
       id="speed"
-      title="Speed and mobile"
-      subtitle={`Measured by Google PageSpeed Insights on a mobile phone${
-        speed.field ? `, with real Chrome users over the last 28 days${speed.field.wholeSite ? " (whole website)" : ""}` : ""
-      }. Not AI.`}
+      title={t.speedTitle}
+      subtitle={t.speedSubtitle(Boolean(speed.field), Boolean(speed.field?.wholeSite))}
     >
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {scores.map((s) => (
@@ -443,21 +454,12 @@ function Speed({ speed }: { speed: PageSpeedResult }) {
 
 /* ---------- Keywords ---------- */
 
-const PLACES: { key: keyof Omit<KeywordPlacement, "mentions">; label: string }[] = [
-  { key: "title", label: "Title" },
-  { key: "h1", label: "H1" },
-  { key: "headings", label: "Headings" },
-  { key: "meta", label: "Meta" },
-  { key: "url", label: "URL" },
-];
+const PLACES: (keyof Omit<KeywordPlacement, "mentions">)[] = ["title", "h1", "headings", "meta", "url"];
 
 function Keywords({ keywords }: { keywords: KeywordsResult }) {
+  const { t } = useText();
   return (
-    <Section
-      id="keywords"
-      title="Keywords"
-      subtitle="The search phrases the website is built around, and five worth adding. The AI suggests the phrases; where each one appears is checked in code. These are not Google rankings."
-    >
+    <Section id="keywords" title={t.keywordsTitle} subtitle={t.keywordsSubtitle}>
       <p className="max-w-[70ch] leading-relaxed">{keywords.summary}</p>
 
       {keywords.current.length > 0 && (
@@ -465,13 +467,13 @@ function Keywords({ keywords }: { keywords: KeywordsResult }) {
           <table className="w-full text-sm">
             <thead className="border-b border-ink/10 text-left text-ink-soft">
               <tr>
-                <th className="px-4 py-3 font-medium">Targets today</th>
+                <th className="px-4 py-3 font-medium">{t.targetsToday}</th>
                 {PLACES.map((p) => (
-                  <th key={p.key} className="px-2 py-3 text-center font-medium">
-                    {p.label}
+                  <th key={p} className="px-2 py-3 text-center font-medium">
+                    {t.places[p]}
                   </th>
                 ))}
-                <th className="px-4 py-3 text-right font-medium">Mentions</th>
+                <th className="px-4 py-3 text-right font-medium">{t.mentions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink/5">
@@ -479,18 +481,18 @@ function Keywords({ keywords }: { keywords: KeywordsResult }) {
                 <tr key={k.keyword}>
                   <td className="px-4 py-3">
                     <span className="font-semibold">{k.keyword}</span>
-                    <span className="ml-2 whitespace-nowrap text-xs text-ink-soft">{k.intent}</span>
+                    <span className="ml-2 whitespace-nowrap text-xs text-ink-soft">{t.intent[k.intent] ?? k.intent}</span>
                   </td>
                   {PLACES.map((p) => (
-                    <td key={p.key} className="px-2 py-3 text-center">
-                      {k.placement[p.key] ? (
-                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white" aria-label="Yes">
+                    <td key={p} className="px-2 py-3 text-center">
+                      {k.placement[p] ? (
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white" aria-label={t.yes}>
                           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
                             <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </span>
                       ) : (
-                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-mist text-ink-soft" aria-label="No">
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-mist text-ink-soft" aria-label={t.no}>
                           –
                         </span>
                       )}
@@ -504,13 +506,10 @@ function Keywords({ keywords }: { keywords: KeywordsResult }) {
         </div>
       )}
       {keywords.dropped > 0 && (
-        <p className="text-xs text-ink-soft">
-          {keywords.dropped} {keywords.dropped === 1 ? "keyword" : "keywords"} the AI named couldn&apos;t be found on the website, so{" "}
-          {keywords.dropped === 1 ? "it was" : "they were"} left out.
-        </p>
+        <p className="text-xs text-ink-soft">{t.dropped(keywords.dropped)}</p>
       )}
 
-      <h3 className="mt-4 text-lg font-semibold">Worth targeting next</h3>
+      <h3 className="mt-4 text-lg font-semibold">{t.worthTargeting}</h3>
       <ol className="grid gap-3 sm:grid-cols-2">
         {keywords.suggested.map((k, i) => (
           <li key={k.keyword} className="flex gap-4 rounded-xl border border-ink/10 bg-white p-5">
@@ -518,9 +517,9 @@ function Keywords({ keywords }: { keywords: KeywordsResult }) {
             <div className="min-w-0">
               <p className="font-semibold">{k.keyword}</p>
               <p className="mt-1 flex flex-wrap gap-2">
-                <Tag>{k.intent}</Tag>
+                <Tag>{t.intent[k.intent] ?? k.intent}</Tag>
                 <Tag tone={k.onSite ? "bg-emerald-50 text-emerald-900" : "bg-amber-50 text-amber-900"}>
-                  {k.onSite ? "Mentioned, not targeted" : "Not on the site yet"}
+                  {k.onSite ? t.mentionedNotTargeted : t.notOnSite}
                 </Tag>
               </p>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">{k.why}</p>
@@ -539,26 +538,23 @@ function Tag({ children, tone = "bg-mist text-ink" }: { children: React.ReactNod
 /* ---------- Brand voice ---------- */
 
 function BrandVoice({ voice }: { voice: BrandVoiceResult }) {
+  const { t } = useText();
   const p = voice.profile;
   return (
-    <Section
-      id="brand-voice"
-      title="Brand voice"
-      subtitle={`How the website sounds and who it speaks to. ${voice.grounding.verifiedQuotes} of ${voice.grounding.totalQuotes} quotes were found word for word on the website.`}
-    >
+    <Section id="brand-voice" title={t.voiceTitle} subtitle={t.voiceSubtitle(voice.grounding.verifiedQuotes, voice.grounding.totalQuotes)}>
       <div className="rounded-xl border border-ink/10 bg-white p-6">
         <p className="text-2xl font-bold capitalize tracking-tight">{p.tone.join(", ")}</p>
         <p className="mt-2 max-w-[65ch] leading-relaxed text-ink-soft">{p.toneSummary}</p>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           <div>
-            <p className="text-sm font-semibold">Positioning</p>
+            <p className="text-sm font-semibold">{t.positioning}</p>
             <p className="mt-1 leading-relaxed">{p.positioning}</p>
           </div>
           <div>
-            <p className="text-sm font-semibold">Audience</p>
+            <p className="text-sm font-semibold">{t.audience}</p>
             <p className="mt-1 leading-relaxed">
               {p.audience.primary}
-              {p.audience.secondary ? ` Also: ${p.audience.secondary}` : ""}
+              {p.audience.secondary ? ` ${t.also} ${p.audience.secondary}` : ""}
             </p>
           </div>
         </div>
@@ -571,6 +567,7 @@ function BrandVoice({ voice }: { voice: BrandVoiceResult }) {
 /* ---------- Posts ---------- */
 
 function Posts({ pack, site, reportId }: { pack: ContentPack; site?: WebsiteSummary; reportId?: string | null }) {
+  const { t, lang } = useText();
   // New reports have a LinkedIn and an X post. Older ones have one or 14; at most two are shown.
   const posts = pack.posts.slice(0, 2);
   if (!posts.length) return null;
@@ -580,26 +577,31 @@ function Posts({ pack, site, reportId }: { pack: ContentPack; site?: WebsiteSumm
   return (
     <Section
       id="posts"
-      title={posts.length > 1 ? "Social media posts" : "Social media post"}
-      subtitle={`Ready to post, in the brand's voice, previewed as they would look on ${posts.map((p) => p.platform).join(" and ")}.`}
+      title={t.postsTitle(posts.length)}
+      subtitle={t.postsSubtitle(posts.map((p) => p.platform))}
     >
       {/* Both cards stretch to the same height, so the copy buttons underneath line up. */}
       <div className={`grid gap-5 ${posts.length > 1 ? "md:grid-cols-2" : "max-w-md"}`}>
         {posts.map((post, i) => (
           <div key={i} className="flex flex-col">
             <div className="flex-1">
-              <SocialPostPreview post={post} brand={brand} domain={domain} socialLinks={site?.socialLinks ?? []} />
+              <SocialPostPreview post={post} brand={brand} domain={domain} socialLinks={site?.socialLinks ?? []} lang={lang} />
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
               <CopyButton
                 text={postText(post)}
-                label={`Copy ${post.platform} post`}
+                label={t.copyPost(post.platform)}
+                copiedLabel={t.copied}
                 className="rounded-md border border-ink/20 bg-white px-2.5 py-1 font-medium hover:border-ink"
               />
-              <span className="text-ink-soft">Theme: {post.pillar}</span>
+              <span className="text-ink-soft">
+                {t.theme}: {post.pillar}
+              </span>
               {/* X has a 280-character limit; older reports were written before it, so only show the count when it fits. */}
               {post.platform === "X" && postText(post).length <= 280 && (
-                <span className="ml-auto text-stone-400">{postText(post).length}/280 characters</span>
+                <span className="ml-auto text-stone-400">
+                  {postText(post).length}/280 {t.characters}
+                </span>
               )}
             </div>
           </div>
@@ -608,11 +610,8 @@ function Posts({ pack, site, reportId }: { pack: ContentPack; site?: WebsiteSumm
 
       {SITE.linkedinUrl && (
         <div className="rounded-xl bg-ink p-6 text-white">
-          <h3 className="text-lg font-semibold">Want a full content plan{domain ? ` for ${domain}` : ""}?</h3>
-          <p className="mt-2 max-w-[60ch] leading-relaxed text-white/80">
-            Two weeks of posts like these, built on the three themes that suit the company best:{" "}
-            {pack.pillars.map((p) => p.name).join(", ")}. Send me a message and I&apos;ll put it together.
-          </p>
+          <h3 className="text-lg font-semibold">{t.contentPlanTitle(domain)}</h3>
+          <p className="mt-2 max-w-[60ch] leading-relaxed text-white/80">{t.contentPlanText(joinList(pack.pillars.map((p) => p.name), lang))}</p>
           <LinkedInButton className="mt-4 px-5 py-2.5" onClick={() => trackClick("cta_contentplan", reportId)} />
         </div>
       )}
@@ -623,8 +622,9 @@ function Posts({ pack, site, reportId }: { pack: ContentPack; site?: WebsiteSumm
 /* ---------- Automation plan ---------- */
 
 function Automations({ plan }: { plan: AutomationPlan }) {
+  const { t } = useText();
   return (
-    <Section id="automations" title="Automation plan" subtitle={plan.summary}>
+    <Section id="automations" title={t.automationsTitle} subtitle={plan.summary}>
       <ol className="flex flex-col gap-4">
         {/* Older reports have 4–6 automations; the first three are the most valuable. */}
         {plan.automations.slice(0, 3).map((a, i) => (
@@ -633,18 +633,22 @@ function Automations({ plan }: { plan: AutomationPlan }) {
               <span className="text-lg font-semibold">
                 {i + 1}. {a.name}
               </span>
-              <Badge tone={levelTone(a.impact, "impact")}>Impact: {a.impact}</Badge>
-              <Badge tone={levelTone(a.effort, "effort")}>Effort: {a.effort}</Badge>
+              <Badge tone={levelTone(a.impact, "impact")}>
+                {t.impact}: {t.level[a.impact] ?? a.impact}
+              </Badge>
+              <Badge tone={levelTone(a.effort, "effort")}>
+                {t.effort}: {t.level[a.effort] ?? a.effort}
+              </Badge>
             </div>
             <p className="mt-1 text-ink-soft">{a.goal}</p>
 
             {/* The workflow as a flow: what starts it, what happens, what it achieves. */}
             <ol className="mt-5 flex flex-col">
-              <FlowStep kind="trigger" label="Trigger" text={a.trigger} />
+              <FlowStep kind="trigger" label={t.trigger} text={a.trigger} />
               {a.steps.map((s, j) => (
-                <FlowStep key={j} kind="step" label={`Step ${j + 1}`} text={s} />
+                <FlowStep key={j} kind="step" label={t.step(j + 1)} text={s} />
               ))}
-              <FlowStep kind="result" label="Result" text={a.metric} last />
+              <FlowStep kind="result" label={t.result} text={a.metric} last />
             </ol>
 
             <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
@@ -656,7 +660,7 @@ function Automations({ plan }: { plan: AutomationPlan }) {
             </div>
             {a.aiRole && (
               <p className="mt-3 rounded-lg bg-mist/70 px-4 py-3 text-sm leading-relaxed">
-                <span className="font-semibold">Where AI helps: </span>
+                <span className="font-semibold">{t.whereAiHelps} </span>
                 {a.aiRole}
               </p>
             )}
@@ -689,6 +693,7 @@ function FlowStep({ kind, label, text, last = false }: { kind: "trigger" | "step
  * and the owner replies by hand. Nothing is sent automatically, so the copy promises a reply, not an email.
  */
 function LeadForm({ domain, reportId }: { domain?: string; reportId: string }) {
+  const { t } = useText();
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState(""); // hidden field that only bots fill in
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
@@ -704,10 +709,10 @@ function LeadForm({ domain, reportId }: { domain?: string; reportId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, reportId, company }),
       });
-      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? "Something went wrong. Please try again.");
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? t.somethingWrong);
       setState("sent");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : t.somethingWrong);
       setState("idle");
     }
   }
@@ -716,20 +721,18 @@ function LeadForm({ domain, reportId }: { domain?: string; reportId: string }) {
     <section id="contact" className="scroll-mt-24 rounded-2xl bg-ink p-6 text-white sm:p-8">
       <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Want a hand putting this into practice?</h2>
-          <p className="mt-2 leading-relaxed text-white/75">
-            Leave your email and I&apos;ll send you the full list of fixes{domain ? ` for ${domain}` : ""}, with where I&apos;d start.
-          </p>
+          <h2 className="text-2xl font-bold tracking-tight">{t.leadTitle}</h2>
+          <p className="mt-2 leading-relaxed text-white/75">{t.leadText(domain)}</p>
         </div>
         {state === "sent" ? (
           <p role="status" className="rounded-xl bg-white/10 p-5 font-medium">
-            Thanks! I&apos;ll get back to you by email{domain ? ` about ${domain}` : ""}.
+            {t.leadThanks(domain)}
           </p>
         ) : (
           <form onSubmit={submit} className="flex flex-col gap-3">
             <div className="flex flex-col gap-2 sm:flex-row">
               <label htmlFor="lead-email" className="sr-only">
-                Your email
+                {t.yourEmail}
               </label>
               <input
                 id="lead-email"
@@ -746,7 +749,7 @@ function LeadForm({ domain, reportId }: { domain?: string; reportId: string }) {
                 disabled={state === "sending"}
                 className="rounded-lg bg-marker px-5 py-3 font-semibold text-ink hover:bg-marker/85 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40 disabled:opacity-70"
               >
-                {state === "sending" ? "Sending…" : "Send me the fixes"}
+                {state === "sending" ? t.sending : t.sendFixes}
               </button>
             </div>
             <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
@@ -759,15 +762,16 @@ function LeadForm({ domain, reportId }: { domain?: string; reportId: string }) {
               </p>
             )}
             <p className="text-sm text-white/60">
-              Optional. I only use your email to reply to you; it&apos;s deleted after 12 months.{" "}
+              {t.leadSmallPrint}{" "}
               <a href="/privacy" className="underline underline-offset-4 hover:text-white">
-                Privacy policy
+                {t.privacyPolicy}
               </a>
               {SITE.linkedinUrl && (
                 <>
-                  {" "}or{" "}
+                  {" "}
+                  {t.or}{" "}
                   <a href={SITE.linkedinUrl} target="_blank" rel="noreferrer" onClick={() => trackClick("cta_contact", reportId)} className="font-semibold text-white underline underline-offset-4 hover:text-marker">
-                    message me on LinkedIn
+                    {t.messageMeLower}
                   </a>
                 </>
               )}
@@ -787,15 +791,11 @@ function LeadForm({ domain, reportId }: { domain?: string; reportId: string }) {
  * not advice, and not endorsed by the company. Also covers the EU AI Act's transparency duty
  * to make AI-generated text recognisable as such.
  */
-function Disclaimer({ domain, name }: { domain: string; name: string }) {
+function Disclaimer({ domain, name, competitors = [] }: { domain: string; name: string; competitors?: string[] }) {
+  const { t } = useText();
   return (
     <aside className="border-t border-ink/10 pt-6 text-xs leading-relaxed text-ink-soft">
-      <p className="max-w-[80ch]">
-        This report was generated automatically with AI (Google Gemini), using only the public website of {domain} and
-        Google PageSpeed measurements. It can contain errors and is not professional advice. Growth Audit AI is an
-        independent project and is not affiliated with or endorsed by {name}. Company names and logos belong to their
-        owners and are shown only to identify the website analysed.
-      </p>
+      <p className="max-w-[80ch]">{t.disclaimer(domain, name, competitors)}</p>
     </aside>
   );
 }
@@ -894,7 +894,8 @@ function StatusIcon({ status }: { status: SiteCheck["status"] }) {
     warn: "bg-amber-100 text-amber-800",
     fail: "bg-red-100 text-red-800",
   }[status];
-  const label = { pass: "Passed", warn: "Needs attention", fail: "Failed" }[status];
+  const { t } = useText();
+  const label = t.status[status];
   return (
     <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${style}`} aria-label={label} role="img">
       {status === "pass" ? "✓" : status === "warn" ? "!" : "✕"}
@@ -936,7 +937,7 @@ function LinkedInButton({ className = "", onClick }: { className?: string; onCli
       rel="noreferrer"
       className={`inline-block rounded-lg bg-white font-semibold text-ink hover:bg-marker focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker ${className}`}
     >
-      Message me on LinkedIn
+      {useText().t.messageMe}
     </a>
   );
 }
