@@ -275,6 +275,21 @@ A fold-out "Compare with competitors (optional)" with two fields. Without compet
 
 **Talking point:** "Two growth loops: the benchmark gives the score meaning and a reason to improve, and the badge turns top scores into backlinks."
 
+## 23. Outreach kit (`lib/steps/outreach.ts`, `/api/outreach`)
+
+For agencies and freelancers who audit a company they want to work with. Under the report, "Reach out to this company" writes first-contact messages on request: a LinkedIn connection note (max 300 characters), a follow-up after they accept, an email version and three subject-line options.
+
+| Decision | Why |
+| --- | --- |
+| **Built only from the report** | The AI gets a compact digest of the report (scores, quick wins, failed checks, keywords), not the website, so every finding is one the reader can verify in the report |
+| **Every number is checked** | The schema rejects any number that isn't in the digest (for example an invented "40% more leads"); the AI gets one retry with the exact problem |
+| **Visitors' reports are redacted first** | Quick wins a visitor can't see never leak into a message |
+| **LinkedIn first, email with a legal note** | Unsolicited marketing email needs consent in Spain (LSSI-CE) and Germany (UWG), even B2B; the email version says so and can't be hidden |
+| **No contact lookup** | The tool doesn't search for people. It links to the company's LinkedIn page (if the website has one) and to LinkedIn's own people search, and suggests a role based on the weakest area. No personal data is collected or stored |
+| **On request only, not stored** | A fast model, well under a cent per kit, 20 kits per visitor per day; counted on /stats |
+
+**Talking point:** "The outreach kit turns an audit into a reason to reach out, but it can only use facts from the report, and it steers users away from cold email where that's illegal."
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.

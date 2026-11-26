@@ -68,6 +68,11 @@ export default function PrivacyPage() {
               for speed measurements. This concerns public company content, not data about you. Legal basis: Art. 6(1)(b) and
               (f) GDPR.
             </p>
+            <p>
+              If you use &quot;Reach out to this company&quot; under a report, what you type there (your name, your company, your
+              offer and a contact&apos;s first name, all optional) is sent to Google&apos;s Gemini API together with the report to
+              write the messages. It is not stored by this site. Only enter names you are allowed to use for this purpose.
+            </p>
           </section>
 
           <section>
