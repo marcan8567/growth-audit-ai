@@ -27,7 +27,6 @@ Scores for six growth areas, Google speed data, keyword focus, the brand voice, 
 | **Automation plan** | The three marketing workflows most worth automating: trigger → steps → result, tools, and where AI helps |
 | **Keyword focus** | The search phrases the site targets, with where each appears (title, H1, headings, meta, URL) measured in code, plus five phrases worth adding. Not Google rankings |
 | **Competitor comparison (optional)** | Add up to two competitors and get the six areas side by side, with who leads where worked out by code |
-| **Outreach kit** | On request, first-contact messages built only from the report: a LinkedIn connection note, a follow-up, an email version and subject lines. Every number is checked against the report |
 | **Benchmark** | How the score compares with every website audited so far: the average, and "better than X%" |
 | **Score badge** | For scores of 70 and up, an embeddable badge that links back to the report |
 | **Save as PDF** | A print layout without menus or buttons, saved as a PDF from the browser |

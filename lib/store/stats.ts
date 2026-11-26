@@ -20,7 +20,6 @@ export const STAT_EVENTS = [
   "share_linkedin", // a report shared with the LinkedIn button
   "share_x", // a report shared with the X button
   "lead_email", // an email left in the form under a report
-  "outreach_created", // an outreach kit was generated from a report
 ] as const;
 
 export type StatEvent = (typeof STAT_EVENTS)[number];

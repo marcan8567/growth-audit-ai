@@ -63,7 +63,6 @@ export function Report({
     brandVoice && { id: "brand-voice", label: t.menu.brandVoice },
     contentPack && { id: "posts", label: t.menu.posts },
     automation && { id: "automations", label: t.menu.automations },
-    audit && site && reportId && { id: "outreach", label: t.menu.outreach },
     audit && reportId && { id: "contact", label: t.menu.contact },
   ].filter(Boolean) as { id: string; label: string }[];
 
@@ -84,7 +83,6 @@ export function Report({
       {brandVoice && <BrandVoice voice={brandVoice} />}
       {contentPack && <Posts pack={contentPack} site={site} reportId={reportId} />}
       {automation && <Automations plan={automation} />}
-      {audit && site && reportId && <OutreachKit audit={audit} site={site} reportId={reportId} />}
       {audit && reportId && audit.overallScore >= BADGE_MIN_SCORE && <ScoreBadge audit={audit} reportId={reportId} />}
       {audit && reportId && <LeadForm domain={site?.domain} reportId={reportId} />}
       {site && (
@@ -878,150 +876,6 @@ function FlowStep({ kind, label, text, last = false }: { kind: "trigger" | "step
         <span className={kind === "step" ? "text-ink-soft" : ""}>{text}</span>
       </div>
     </li>
-  );
-}
-
-/* ---------- Outreach kit ---------- */
-
-type OutreachResult = {
-  findings: string[];
-  connectionNote: string;
-  followUp: string;
-  email: { subject: string; body: string };
-  openers: { style: "curiosity" | "number" | "compliment"; subject: string; firstLine: string }[];
-};
-
-/**
- * First-contact messages for someone who wants to work with this company (an agency or freelancer).
- * Written on request by /api/outreach, only from what this report shows. The tool doesn't look anyone up:
- * it links to the company's LinkedIn page (if the website has one) and to LinkedIn's own people search.
- */
-function OutreachKit({ audit, site, reportId }: { audit: GrowthAuditResult; site: WebsiteSummary; reportId: string }) {
-  const { t } = useText();
-  const o = t.outreach;
-  const [fields, setFields] = useState({ senderName: "", senderCompany: "", offer: "", contactName: "" });
-  const [state, setState] = useState<"idle" | "working">("idle");
-  const [kit, setKit] = useState<OutreachResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  // Who to contact follows the weakest area: a simple rule, not a guess about real people.
-  const weakest = [...audit.categories].sort((a, b) => a.score - b.score)[0]?.id;
-  const role: "marketing" | "growth" | "founder" = weakest === "conversion" ? "growth" : weakest === "trust" ? "founder" : "marketing";
-  const company = site.brand?.name ?? site.domain;
-  const companyPage = site.socialLinks.find((s) => s.platform === "LinkedIn")?.url;
-  const peopleSearch = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`${company} ${o.searchWord[role]}`)}`;
-
-  async function create(e: React.FormEvent) {
-    e.preventDefault();
-    setState("working");
-    setError(null);
-    try {
-      const res = await fetch("/api/outreach", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reportId, ...fields }),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error ?? o.error);
-      setKit(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : o.error);
-    } finally {
-      setState("idle");
-    }
-  }
-
-  const input = (key: keyof typeof fields, label: string, placeholder?: string) => (
-    <label className="flex flex-col gap-1 text-sm">
-      <span className="font-medium">{label}</span>
-      <input
-        value={fields[key]}
-        onChange={(e) => setFields((f) => ({ ...f, [key]: e.target.value }))}
-        placeholder={placeholder}
-        maxLength={key === "offer" ? 140 : 80}
-        className="rounded-lg border-2 border-ink/15 bg-white px-3 py-2 outline-none focus:border-ink"
-      />
-    </label>
-  );
-
-  return (
-    <Section id="outreach" title={o.title} subtitle={o.subtitle}>
-      <div className="print:hidden">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="rounded-full bg-marker/40 px-3 py-1 font-medium">{o.bestContact(o.roles[role])}</span>
-          {companyPage && (
-            <a href={companyPage} target="_blank" rel="noopener noreferrer" className="rounded-full border border-ink/20 px-3 py-1 font-medium hover:border-ink">
-              {o.companyPage}
-            </a>
-          )}
-          <a href={peopleSearch} target="_blank" rel="noopener noreferrer" className="rounded-full border border-ink/20 px-3 py-1 font-medium hover:border-ink">
-            {o.findPerson}
-          </a>
-        </div>
-
-        <form onSubmit={create} className="mt-4 grid gap-3 rounded-xl border border-ink/10 bg-white p-5 sm:grid-cols-2 lg:grid-cols-4">
-          {input("senderName", o.yourName)}
-          {input("senderCompany", o.yourCompany)}
-          {input("offer", o.yourOffer, o.offerPlaceholder)}
-          {input("contactName", o.contactName)}
-          <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
-            <button
-              disabled={state === "working"}
-              className="rounded-lg bg-ink px-5 py-2.5 font-semibold text-white hover:bg-ink/85 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker disabled:opacity-60"
-            >
-              {state === "working" ? o.creating : kit ? o.again : o.create}
-            </button>
-            {error && <span className="text-sm text-red-700">{error}</span>}
-          </div>
-        </form>
-
-        {kit && (
-          <div className="mt-5 flex flex-col gap-4">
-            <div className="text-sm">
-              <p className="font-semibold">{o.findings}</p>
-              <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-5 text-ink-soft">
-                {kit.findings.map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
-              </ul>
-            </div>
-            <MessageCard title={o.connectionNote} text={kit.connectionNote} max={300} />
-            <MessageCard title={o.followUp} text={kit.followUp} max={800} />
-            <MessageCard title={o.email} text={`${o.subject}: ${kit.email.subject}\n\n${kit.email.body}`} note={o.emailNote} />
-            <div className="rounded-xl border border-ink/10 bg-white p-5">
-              <p className="font-semibold">{o.openers}</p>
-              <ul className="mt-3 flex flex-col gap-3">
-                {kit.openers.map((op) => (
-                  <li key={op.style} className="flex flex-col gap-1 border-l-2 border-marker pl-3 text-sm">
-                    <span className="text-xs font-semibold text-ink-soft">{o.style[op.style]}</span>
-                    <span className="font-medium">{op.subject}</span>
-                    <span className="text-ink-soft">{op.firstLine}</span>
-                    <CopyButton text={`${op.subject}\n\n${op.firstLine}`} label={o.copy} copiedLabel={t.copied} className="self-start text-xs font-semibold underline underline-offset-2" />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>
-    </Section>
-  );
-}
-
-function MessageCard({ title, text, max, note }: { title: string; text: string; max?: number; note?: string }) {
-  const { t } = useText();
-  return (
-    <div className="rounded-xl border border-ink/10 bg-white p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="font-semibold">{title}</p>
-        <span className="flex items-center gap-3 text-xs">
-          {max && <span className="text-ink-soft">{t.outreach.chars(text.length, max)}</span>}
-          <CopyButton text={text} label={t.outreach.copy} copiedLabel={t.copied} className="rounded-md bg-ink px-3 py-1.5 font-semibold text-white hover:bg-ink/85" />
-        </span>
-      </div>
-      {note && <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">{note}</p>}
-      <p className="mt-3 whitespace-pre-line text-sm leading-relaxed">{text}</p>
-    </div>
   );
 }
 

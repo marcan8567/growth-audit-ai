@@ -5,7 +5,7 @@ import type { Lang } from "@/lib/i18n";
  * already; this covers the headings, labels and buttons around them. Add a key here when adding a label.
  */
 export interface ReportText {
-  menu: Record<"overview" | "scores" | "quickWins" | "checks" | "speed" | "keywords" | "brandVoice" | "posts" | "automations" | "compare" | "outreach" | "contact", string>;
+  menu: Record<"overview" | "scores" | "quickWins" | "checks" | "speed" | "keywords" | "brandVoice" | "posts" | "automations" | "compare" | "contact", string>;
   shareReport: string;
   linkCopied: string;
   shareOn: (network: string) => string;
@@ -98,34 +98,6 @@ export interface ReportText {
   copyCode: string;
   codeCopied: string;
   badgeAlt: (score: number) => string;
-  outreach: {
-    title: string;
-    subtitle: string;
-    yourName: string;
-    yourCompany: string;
-    yourOffer: string;
-    offerPlaceholder: string;
-    contactName: string;
-    create: string;
-    creating: string;
-    again: string;
-    findings: string;
-    bestContact: (role: string) => string;
-    roles: Record<"marketing" | "growth" | "founder", string>;
-    searchWord: Record<"marketing" | "growth" | "founder", string>;
-    companyPage: string;
-    findPerson: string;
-    connectionNote: string;
-    followUp: string;
-    email: string;
-    emailNote: string;
-    subject: string;
-    openers: string;
-    style: Record<"curiosity" | "number" | "compliment", string>;
-    chars: (n: number, max: number) => string;
-    copy: string;
-    error: string;
-  };
 }
 
 const join = (items: string[], and: string) =>
@@ -144,7 +116,6 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
       posts: "Posts",
       automations: "Automations",
       compare: "Competitors",
-      outreach: "Outreach",
       contact: "Get help",
     },
     shareReport: "Share report",
@@ -250,34 +221,6 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
     copyCode: "Copy code",
     codeCopied: "Code copied",
     badgeAlt: (s) => `Growth score ${s}/100`,
-    outreach: {
-      title: "Reach out to this company",
-      subtitle: "Ready-to-send first messages, built only from this report: every finding and number comes from the audit. Written by AI on request; check them before sending.",
-      yourName: "Your name",
-      yourCompany: "Your company",
-      yourOffer: "What you offer",
-      offerPlaceholder: "e.g. SEO, marketing automation, ads",
-      contactName: "Contact's first name",
-      create: "Write the messages",
-      creating: "Writing…",
-      again: "Write new versions",
-      findings: "Built on these findings",
-      bestContact: (r) => `Best person to contact: ${r}`,
-      roles: { marketing: "Head of Marketing or founder", growth: "Head of Growth or marketing lead", founder: "Founder or CEO" },
-      searchWord: { marketing: "marketing", growth: "growth", founder: "founder" },
-      companyPage: "Open company page",
-      findPerson: "Find the right person on LinkedIn",
-      connectionNote: "LinkedIn connection note",
-      followUp: "LinkedIn message after they accept",
-      email: "Email version",
-      emailNote: "In Spain, Germany and much of the EU, marketing emails need prior consent, even business to business. Use this for existing contacts and people who asked to hear from you; for strangers, use LinkedIn.",
-      subject: "Subject",
-      openers: "Other ways to open",
-      style: { curiosity: "Curiosity", number: "Number", compliment: "Strength first" },
-      chars: (n, m) => `${n}/${m} characters`,
-      copy: "Copy",
-      error: "Couldn't write the messages. Please try again.",
-    },
   },
   es: {
     menu: {
@@ -291,7 +234,6 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
       posts: "Publicaciones",
       automations: "Automatizaciones",
       compare: "Competidores",
-      outreach: "Contacto",
       contact: "Ayuda",
     },
     shareReport: "Compartir informe",
@@ -397,34 +339,6 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
     copyCode: "Copiar código",
     codeCopied: "Código copiado",
     badgeAlt: (s) => `Puntuación de crecimiento ${s}/100`,
-    outreach: {
-      title: "Contacta con esta empresa",
-      subtitle: "Primeros mensajes listos para enviar, basados solo en este informe: cada hallazgo y cada cifra salen de la auditoría. Los escribe la IA cuando lo pides; revísalos antes de enviarlos.",
-      yourName: "Tu nombre",
-      yourCompany: "Tu empresa",
-      yourOffer: "Qué ofreces",
-      offerPlaceholder: "p. ej. SEO, automatización de marketing, anuncios",
-      contactName: "Nombre del contacto",
-      create: "Escribir los mensajes",
-      creating: "Escribiendo…",
-      again: "Escribir otras versiones",
-      findings: "Basados en estos hallazgos",
-      bestContact: (r) => `Mejor persona de contacto: ${r}`,
-      roles: { marketing: "responsable de marketing o fundador", growth: "responsable de crecimiento o de marketing", founder: "fundador o CEO" },
-      searchWord: { marketing: "marketing", growth: "growth", founder: "fundador" },
-      companyPage: "Abrir página de empresa",
-      findPerson: "Buscar a la persona adecuada en LinkedIn",
-      connectionNote: "Nota de invitación en LinkedIn",
-      followUp: "Mensaje de LinkedIn tras aceptar",
-      email: "Versión para email",
-      emailNote: "En España, Alemania y gran parte de la UE, los emails comerciales necesitan consentimiento previo, también entre empresas. Úsalo con contactos existentes y con quien te haya pedido información; para desconocidos, usa LinkedIn.",
-      subject: "Asunto",
-      openers: "Otras formas de empezar",
-      style: { curiosity: "Curiosidad", number: "Cifra", compliment: "Primero un punto fuerte" },
-      chars: (n, m) => `${n}/${m} caracteres`,
-      copy: "Copiar",
-      error: "No se pudieron escribir los mensajes. Inténtalo de nuevo.",
-    },
   },
   de: {
     menu: {
@@ -438,7 +352,6 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
       posts: "Beiträge",
       automations: "Automatisierungen",
       compare: "Wettbewerber",
-      outreach: "Ansprache",
       contact: "Hilfe",
     },
     shareReport: "Bericht teilen",
@@ -544,34 +457,6 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
     copyCode: "Code kopieren",
     codeCopied: "Code kopiert",
     badgeAlt: (s) => `Wachstums-Score ${s}/100`,
-    outreach: {
-      title: "Dieses Unternehmen ansprechen",
-      subtitle: "Versandfertige erste Nachrichten, nur aus diesem Bericht: Jedes Ergebnis und jede Zahl stammt aus dem Audit. Von KI auf Anfrage geschrieben; vor dem Senden bitte prüfen.",
-      yourName: "Ihr Name",
-      yourCompany: "Ihr Unternehmen",
-      yourOffer: "Ihr Angebot",
-      offerPlaceholder: "z. B. SEO, Marketing-Automatisierung, Anzeigen",
-      contactName: "Vorname des Kontakts",
-      create: "Nachrichten schreiben",
-      creating: "Wird geschrieben…",
-      again: "Neue Versionen schreiben",
-      findings: "Grundlage sind diese Ergebnisse",
-      bestContact: (r) => `Beste Ansprechperson: ${r}`,
-      roles: { marketing: "Marketingleitung oder Gründer:in", growth: "Growth- oder Marketingleitung", founder: "Gründer:in oder Geschäftsführung" },
-      searchWord: { marketing: "Marketing", growth: "Growth", founder: "Gründer" },
-      companyPage: "Unternehmensseite öffnen",
-      findPerson: "Passende Person auf LinkedIn finden",
-      connectionNote: "LinkedIn-Kontaktanfrage",
-      followUp: "LinkedIn-Nachricht nach der Annahme",
-      email: "E-Mail-Version",
-      emailNote: "In Deutschland, Spanien und großen Teilen der EU brauchen Werbe-E-Mails eine vorherige Einwilligung, auch zwischen Unternehmen. Nutzen Sie diese Version für bestehende Kontakte und Personen, die Informationen angefragt haben; für Unbekannte LinkedIn.",
-      subject: "Betreff",
-      openers: "Andere Einstiege",
-      style: { curiosity: "Neugier", number: "Zahl", compliment: "Stärke zuerst" },
-      chars: (n, m) => `${n}/${m} Zeichen`,
-      copy: "Kopieren",
-      error: "Die Nachrichten konnten nicht geschrieben werden. Bitte erneut versuchen.",
-    },
   },
 };
 
