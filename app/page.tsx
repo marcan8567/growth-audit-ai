@@ -25,11 +25,11 @@ export default async function Home() {
 
   return (
     <div className="bg-white text-ink">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6">
         <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
           <Logo />
         </Link>
-        <nav className="flex gap-6 text-sm font-medium text-ink-soft">
+        <nav className="flex items-center gap-4 whitespace-nowrap text-sm font-medium text-ink-soft sm:gap-6">
           {sample && (
             <Link href={sampleHref} className="hover:text-ink">
               Sample report
