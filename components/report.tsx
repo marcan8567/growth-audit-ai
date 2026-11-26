@@ -8,6 +8,7 @@ import type { AutomationPlan } from "@/lib/schemas/automation-plan";
 import type { ContentPack } from "@/lib/schemas/content-pack";
 import type { BrandVoiceResult } from "@/lib/steps/brand-voice";
 import type { GrowthAuditResult } from "@/lib/steps/growth-audit";
+import type { KeywordPlacement, KeywordsResult } from "@/lib/steps/keywords";
 import { postText, SocialPostPreview } from "@/components/social-post";
 import { SITE } from "@/lib/site";
 import { trackClick } from "@/lib/track-client";
@@ -33,7 +34,7 @@ export function Report({
   /** The saved report's id, sent with button clicks so lead alerts can name the website. */
   reportId?: string | null;
 }) {
-  const { checks, speed, brandVoice, audit, automation, contentPack } = data;
+  const { checks, speed, brandVoice, audit, automation, contentPack, keywords } = data;
   // The company logo is loaded through our own server (/api/logo), never directly from the company's
   // site, so visitors' IP addresses aren't sent to third parties. Until the report is saved, the
   // company's initial is shown instead.
@@ -47,6 +48,7 @@ export function Report({
     audit && { id: "quick-wins", label: "Quick wins" },
     checks && { id: "checks", label: "Checks" },
     speed && { id: "speed", label: "Speed" },
+    keywords && { id: "keywords", label: "Keywords" },
     brandVoice && { id: "brand-voice", label: "Brand voice" },
     contentPack && { id: "posts", label: "Posts" },
     automation && { id: "automations", label: "Automations" },
@@ -63,6 +65,7 @@ export function Report({
       {audit && <QuickWins audit={audit} domain={site?.domain} reportId={reportId} />}
       {checks && site && <Checks checks={checks} site={site} />}
       {speed && <Speed speed={speed} />}
+      {keywords && <Keywords keywords={keywords} />}
       {audit && <ScoreDetails audit={audit} />}
       {brandVoice && <BrandVoice voice={brandVoice} />}
       {contentPack && <Posts pack={contentPack} site={site} reportId={reportId} />}
@@ -436,6 +439,101 @@ function Speed({ speed }: { speed: PageSpeedResult }) {
       {metrics.length > 0 && <CheckList checks={metrics} />}
     </Section>
   );
+}
+
+/* ---------- Keywords ---------- */
+
+const PLACES: { key: keyof Omit<KeywordPlacement, "mentions">; label: string }[] = [
+  { key: "title", label: "Title" },
+  { key: "h1", label: "H1" },
+  { key: "headings", label: "Headings" },
+  { key: "meta", label: "Meta" },
+  { key: "url", label: "URL" },
+];
+
+function Keywords({ keywords }: { keywords: KeywordsResult }) {
+  return (
+    <Section
+      id="keywords"
+      title="Keywords"
+      subtitle="The search phrases the website is built around, and five worth adding. The AI suggests the phrases; where each one appears is checked in code. These are not Google rankings."
+    >
+      <p className="max-w-[70ch] leading-relaxed">{keywords.summary}</p>
+
+      {keywords.current.length > 0 && (
+        <div className="overflow-x-auto rounded-xl border border-ink/10 bg-white">
+          <table className="w-full text-sm">
+            <thead className="border-b border-ink/10 text-left text-ink-soft">
+              <tr>
+                <th className="px-4 py-3 font-medium">Targets today</th>
+                {PLACES.map((p) => (
+                  <th key={p.key} className="px-2 py-3 text-center font-medium">
+                    {p.label}
+                  </th>
+                ))}
+                <th className="px-4 py-3 text-right font-medium">Mentions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-ink/5">
+              {keywords.current.map((k) => (
+                <tr key={k.keyword}>
+                  <td className="px-4 py-3">
+                    <span className="font-semibold">{k.keyword}</span>
+                    <span className="ml-2 whitespace-nowrap text-xs text-ink-soft">{k.intent}</span>
+                  </td>
+                  {PLACES.map((p) => (
+                    <td key={p.key} className="px-2 py-3 text-center">
+                      {k.placement[p.key] ? (
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white" aria-label="Yes">
+                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
+                            <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                      ) : (
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-mist text-ink-soft" aria-label="No">
+                          –
+                        </span>
+                      )}
+                    </td>
+                  ))}
+                  <td className="px-4 py-3 text-right tabular-nums">{k.placement.mentions}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {keywords.dropped > 0 && (
+        <p className="text-xs text-ink-soft">
+          {keywords.dropped} {keywords.dropped === 1 ? "keyword" : "keywords"} the AI named couldn&apos;t be found on the website, so{" "}
+          {keywords.dropped === 1 ? "it was" : "they were"} left out.
+        </p>
+      )}
+
+      <h3 className="mt-4 text-lg font-semibold">Worth targeting next</h3>
+      <ol className="grid gap-3 sm:grid-cols-2">
+        {keywords.suggested.map((k, i) => (
+          <li key={k.keyword} className="flex gap-4 rounded-xl border border-ink/10 bg-white p-5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-marker text-sm font-bold text-ink">{i + 1}</span>
+            <div className="min-w-0">
+              <p className="font-semibold">{k.keyword}</p>
+              <p className="mt-1 flex flex-wrap gap-2">
+                <Tag>{k.intent}</Tag>
+                <Tag tone={k.onSite ? "bg-emerald-50 text-emerald-900" : "bg-amber-50 text-amber-900"}>
+                  {k.onSite ? "Mentioned, not targeted" : "Not on the site yet"}
+                </Tag>
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{k.why}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </Section>
+  );
+}
+
+function Tag({ children, tone = "bg-mist text-ink" }: { children: React.ReactNode; tone?: string }) {
+  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${tone}`}>{children}</span>;
 }
 
 /* ---------- Brand voice ---------- */

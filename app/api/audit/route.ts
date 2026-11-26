@@ -5,6 +5,7 @@ import { readWebsite } from "@/lib/reader/read-website";
 import { normalizeInputUrl } from "@/lib/reader/url";
 import { fetchPageSpeed, isPageSpeedConfigured, type PageSpeedResult } from "@/lib/reader/pagespeed";
 import { runAutomationPlan } from "@/lib/steps/automation-plan";
+import { runKeywords } from "@/lib/steps/keywords";
 import { runBrandVoice } from "@/lib/steps/brand-voice";
 import { runContentPack } from "@/lib/steps/content-pack";
 import { runGrowthAudit, type GrowthAuditResult } from "@/lib/steps/growth-audit";
@@ -119,6 +120,7 @@ export async function POST(request: Request) {
         await Promise.all([
           speed.then((s) => step("audit", () => runGrowthAudit(site, [...checks, ...(s?.checks ?? [])]))),
           step("automation", () => runAutomationPlan(site, checks)),
+          step("keywords", () => runKeywords(site)),
           brandVoice.then(async (voice) => {
             if (voice) await step("contentPack", () => runContentPack(site, voice));
             else send({ type: "step", step: "contentPack", status: "error", message: "Skipped, because the brand voice step failed." });

@@ -219,6 +219,20 @@ The report reads like a consultant's deliverable: the overview first, the detail
 | **robots.txt is respected** (`lib/reader/robots.ts`) | Sites that ask automated tools not to read them aren't audited; excluded pages are skipped |
 | **A disclaimer on every report** | Automated AI analysis, may contain errors, not advice, not affiliated with the company. Also covers the EU AI Act's rule that AI-generated text must be recognisable as such |
 
+## 18. Keyword focus (`lib/steps/keywords.ts`)
+
+A fast AI step names the 3 to 6 search phrases the website is built around and suggests 5 it should target next. Code then measures where each current phrase really appears: the homepage title, the main heading (H1), other headings, the meta description, page addresses, and how often it is mentioned across the pages read.
+
+| Decision | Why |
+| --- | --- |
+| **Called "keyword focus", not rankings** | Real Google positions need a paid search-data service (for example DataForSEO or SerpApi). Scraping Google breaks its terms, and Search Console only works for your own sites. The report says plainly that these are not rankings |
+| **The AI names, code measures** | The same split as the rest of the tool: judgement from the AI, facts from code. "Current" keywords the AI names but code can't find on the site are dropped, and the report says how many |
+| **Forgiving matching** | Case, plurals ("ai agent" = "AI agents"), hyphens and "and" vs "&" are treated as the same, but words must be whole words in order |
+| **Fast model, runs in parallel** | Takes about 2 seconds alongside the other steps, so the audit isn't slower; costs well under a cent |
+| **Suggestions marked "Not on the site yet" or "Mentioned, not targeted"** | Shows at a glance whether a suggestion is a new topic or one the site only mentions in passing |
+
+**Next step if needed:** add a "Google position" and "searches per month" column from a search-data API; the table is built for it.
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.

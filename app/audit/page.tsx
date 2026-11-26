@@ -21,9 +21,10 @@ const STEPS: { id: StepId; label: string; detail: string }[] = [
   { id: "audit", label: "Scoring the growth audit", detail: "Six areas scored, plus the quick wins" },
   { id: "automation", label: "Planning automations", detail: "The three workflows most worth automating" },
   { id: "contentPack", label: "Writing LinkedIn and X posts", detail: "Two ready-to-post posts in the brand's voice" },
+  { id: "keywords", label: "Finding keywords", detail: "What the site targets, checked in code, plus five to add" },
 ];
 
-const IDLE: Record<StepId, Status> = { speed: "idle", read: "idle", brandVoice: "idle", audit: "idle", automation: "idle", contentPack: "idle" };
+const IDLE: Record<StepId, Status> = { speed: "idle", read: "idle", brandVoice: "idle", audit: "idle", automation: "idle", contentPack: "idle", keywords: "idle" };
 
 export default function AuditPage() {
   const [url, setUrl] = useState("");

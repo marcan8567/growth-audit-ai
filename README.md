@@ -25,6 +25,7 @@ Scores for six growth areas, Google speed data, the brand voice, ready-to-post L
 | **Brand voice** | Tone, audience and positioning, each backed by quotes that are checked word for word against the site |
 | **Two social posts** | One for LinkedIn and one for X, previewed as they'd look in each feed with the company's name, logo and colour |
 | **Automation plan** | The three marketing workflows most worth automating: trigger → steps → result, tools, and where AI helps |
+| **Keyword focus** | The search phrases the site targets, with where each appears (title, H1, headings, meta, URL) measured in code, plus five phrases worth adding. Not Google rankings |
 | **A link to share** | Every report gets its own page and a preview card for LinkedIn, Slack and WhatsApp |
 
 ![The report cover: score ring, summary, biggest opportunity, scores at a glance](docs/screenshots/report-cover.png)
@@ -48,11 +49,13 @@ flowchart LR
   URL --> Speed["Google PageSpeed<br/>(mobile)"]
   Read --> Voice["Brand voice<br/>Flash-Lite"]
   Read --> Plan["Automation plan<br/>Flash-Lite"]
+  Read --> Keys["Keyword focus<br/>Flash-Lite + code check"]
   Read --> Audit["Growth audit<br/>Gemini Flash"]
   Speed --> Audit
   Voice --> Posts["LinkedIn + X posts<br/>Gemini Flash"]
   Audit --> Save[("Saved report<br/>Upstash Redis")]
   Plan --> Save
+  Keys --> Save
   Posts --> Save
   Voice --> Save
 ```
