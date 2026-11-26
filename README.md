@@ -8,7 +8,7 @@
 
 Scores for six growth areas, Google speed data, the brand voice, ready-to-post LinkedIn and X posts and a marketing automation plan, built only from what is on the company's public website.
 
-**Live:** [growth-audit-ai.vercel.app](https://growth-audit-ai.vercel.app) · **Sample report:** [Stryon Labs, a fictional agency](https://growth-audit-ai.vercel.app/r/Zj6Citjzcu) · **2-minute demo:** [video on LinkedIn](https://www.linkedin.com/posts/marc-cantacuzene_growthmarketing-aiautomation-marketingautomation-ugcPost-7531748839616266240-ltMZ/) · **How it's built:** [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)
+**Live:** [growth-audit-ai.vercel.app](https://growth-audit-ai.vercel.app) · **Sample report:** [Stryon Labs, a fictional agency](https://growth-audit-ai.vercel.app/r/sWsQzanhu5) · **2-minute demo:** [video on LinkedIn](https://www.linkedin.com/posts/marc-cantacuzene_growthmarketing-aiautomation-marketingautomation-ugcPost-7531748839616266240-ltMZ/) · **How it's built:** [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)
 
 ![The homepage: a URL field next to the sample report](docs/screenshots/homepage.png)
 
