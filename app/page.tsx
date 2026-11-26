@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
-import { loadReport, type SavedReport } from "@/lib/store/reports";
+import { getAuditOverview, loadReport, type AuditOverview, type SavedReport } from "@/lib/store/reports";
 import { track } from "@/lib/store/stats";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
@@ -12,8 +12,10 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   // The sample is an audit of Stryon Labs, a fictional agency built for this demo, so no real company is judged.
-  const [sample] = await Promise.all([
+  const [sample, overview] = await Promise.all([
     loadReport(SITE.sampleReportId).catch(() => null),
+    // How many websites were audited, and the newest results without their names.
+    getAuditOverview().catch((): AuditOverview => ({ total: 0, averageScore: null, recent: [] })),
     // Funnel count, done alongside so it doesn't slow the page down.
     track("home_view"),
   ]);
@@ -98,6 +100,8 @@ export default async function Home() {
           </div>
         </section>
 
+
+        {overview.total >= 10 && <AuditsSoFar overview={overview} />}
 
         {/* What the report contains. Not a sequence, so no numbers. */}
         <section className="bg-mist">
@@ -193,6 +197,67 @@ export default async function Home() {
       <SiteFooter />
     </div>
   );
+}
+
+/**
+ * Social proof without exposing anyone: a live count of audits, their average score, and the three
+ * newest results with the website left out. Shown once there are at least 10 audits.
+ */
+function AuditsSoFar({ overview }: { overview: AuditOverview }) {
+  return (
+    <section className="mx-auto max-w-6xl px-6 pb-20">
+      <div className="grid gap-8 rounded-2xl border border-ink/10 p-6 sm:p-8 lg:grid-cols-12 lg:items-center">
+        <div className="flex gap-10 lg:col-span-4">
+          <div>
+            <p className="text-5xl font-bold tracking-tight tabular-nums">{overview.total}</p>
+            <p className="mt-1 text-sm text-ink-soft">websites audited</p>
+          </div>
+          {overview.averageScore !== null && (
+            <div>
+              <p className="text-5xl font-bold tracking-tight tabular-nums">
+                {overview.averageScore}
+                <span className="text-lg font-semibold text-ink-soft">/100</span>
+              </p>
+              <p className="mt-1 text-sm text-ink-soft">average score</p>
+            </div>
+          )}
+        </div>
+        <div className="lg:col-span-8">
+          <p className="text-sm font-semibold">Latest audits</p>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-3">
+            {overview.recent.map((a) => (
+              <li key={a.createdAt} className="rounded-xl bg-mist p-4">
+                <p className="flex items-baseline justify-between gap-2">
+                  <span>
+                    <span className={`text-3xl font-bold tracking-tight ${scoreText(a.score / 10)}`}>{a.score}</span>
+                    <span className="text-sm text-ink-soft">/100</span>
+                  </span>
+                  <span className="text-xs text-ink-soft">{timeAgo(a.createdAt)}</span>
+                </p>
+                {a.weakest && (
+                  <p className="mt-2 text-sm leading-snug">
+                    <span className="text-ink-soft">Weakest area:</span> {a.weakest}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-ink-soft">Websites are not shown: every report stays private to whoever has its link.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** "2 hours ago", "yesterday", "3 days ago", or the date for anything older than a month. */
+function timeAgo(iso: string): string {
+  const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (minutes < 60) return minutes <= 1 ? "just now" : `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+  const days = Math.round(hours / 24);
+  if (days < 30) return days === 1 ? "yesterday" : `${days} days ago`;
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
 /** The sample report (a real audit of a fictional company), shown as a scorecard with the key finding. */

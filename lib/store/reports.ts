@@ -7,6 +7,7 @@ import type { AutomationPlan } from "@/lib/schemas/automation-plan";
 import type { ContentPack } from "@/lib/schemas/content-pack";
 import type { BrandVoiceResult } from "@/lib/steps/brand-voice";
 import type { GrowthAuditResult } from "@/lib/steps/growth-audit";
+import { SITE } from "@/lib/site";
 import { getRedis } from "./redis";
 
 /** Everything a finished audit produced. Also used by the report page. */
@@ -33,25 +34,36 @@ const KEEP_FOR_SECONDS = 60 * 60 * 24 * 183;
 // Report links are random and unguessable, so a visitor's report is only seen by people they send the link to.
 const ID_PATTERN = /^[A-Za-z0-9_-]{10}$/;
 
-/** A short entry for the homepage's "Recent audits" boxes. */
-export interface RecentAudit {
-  id: string;
-  domain: string;
+/**
+ * One finished audit for the homepage, without anything that identifies the website:
+ * no domain, no link, just the result. Visitors' reports stay private to whoever has the link.
+ */
+export interface AnonymousAudit {
   score: number;
   grade: string;
+  /** The lowest-scoring growth area, for example "Social presence". */
+  weakest: string;
   createdAt: string;
 }
 
-// The recent-audits list, kept separately for local, preview and production,
-// so local tests never appear on the live homepage.
-const RECENT_KEY = `recent:${process.env.VERCEL_ENV ?? "local"}`;
-const RECENT_KEEP = 20;
+export interface AuditOverview {
+  total: number;
+  averageScore: number | null;
+  recent: AnonymousAudit[];
+}
+
+// Kept separately for local, preview and production, so local tests never show on the live homepage.
+const ENVIRONMENT = process.env.VERCEL_ENV ?? "local";
+const ANON_KEY = `anon:${ENVIRONMENT}`;
+const TOTALS_KEY = `totals:${ENVIRONMENT}`;
+const ANON_KEEP = 20;
 
 /**
  * Saves a report and returns its id, or null if Redis isn't configured.
  *
- * Owner audits (run with the access code) are kept forever and added to the homepage's
- * "Recent audits". Visitors' reports expire after 6 months and are never listed anywhere.
+ * Owner audits (run with the access code) are kept forever; visitors' reports expire after 6 months.
+ * Every audit with a score also counts towards the homepage numbers, anonymously. The demo company
+ * (Stryon Labs) is left out, so the numbers reflect real websites.
  */
 export async function saveReport(data: ReportData, { owner = false } = {}): Promise<string | null> {
   const redis = getRedis();
@@ -60,35 +72,38 @@ export async function saveReport(data: ReportData, { owner = false } = {}): Prom
   const createdAt = new Date().toISOString();
   const report: SavedReport = { ...data, id, createdAt, owner };
 
-  if (owner) {
-    await redis.set(`report:${id}`, report);
-    if (data.audit && data.site) {
-      const entry: RecentAudit = { id, domain: data.site.domain, score: data.audit.overallScore, grade: data.audit.grade, createdAt };
-      await redis.lpush(RECENT_KEY, entry);
-      await redis.ltrim(RECENT_KEY, 0, RECENT_KEEP - 1);
-    }
-  } else {
-    await redis.set(`report:${id}`, report, { ex: KEEP_FOR_SECONDS });
+  if (owner) await redis.set(`report:${id}`, report);
+  else await redis.set(`report:${id}`, report, { ex: KEEP_FOR_SECONDS });
+
+  if (data.audit && data.site && data.site.domain !== SITE.demoSiteDomain) {
+    await recordAnonymously(data.audit, createdAt).catch((err) => console.error("[reports] homepage numbers not updated:", err));
   }
   return id;
 }
 
-/** The newest owner audits, one per website, leaving out any ids given (for example the homepage sample). */
-export async function listRecentAudits(limit = 3, exclude: string[] = []): Promise<RecentAudit[]> {
+/** Adds one audit to the homepage counter and the anonymous recent list. */
+async function recordAnonymously(audit: GrowthAuditResult, createdAt: string) {
   const redis = getRedis();
-  if (!redis) return [];
-  const entries = (await redis.lrange<RecentAudit>(RECENT_KEY, 0, RECENT_KEEP - 1)).sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt),
-  ); // newest first, even if entries were added out of order
-  const seen = new Set<string>();
-  const result: RecentAudit[] = [];
-  for (const entry of entries) {
-    if (exclude.includes(entry.id) || seen.has(entry.domain)) continue;
-    seen.add(entry.domain);
-    result.push(entry);
-    if (result.length === limit) break;
-  }
-  return result;
+  if (!redis) return;
+  const weakest = [...audit.categories].sort((x, y) => x.score - y.score)[0];
+  const entry: AnonymousAudit = { score: audit.overallScore, grade: audit.grade, weakest: weakest?.label ?? "", createdAt };
+  await redis.lpush(ANON_KEY, entry);
+  await redis.ltrim(ANON_KEY, 0, ANON_KEEP - 1);
+  await redis.hincrby(TOTALS_KEY, "audits", 1);
+  await redis.hincrby(TOTALS_KEY, "scoreSum", audit.overallScore);
+}
+
+/** The homepage numbers: how many websites were audited, their average score and the three newest results. */
+export async function getAuditOverview(): Promise<AuditOverview> {
+  const redis = getRedis();
+  if (!redis) return { total: 0, averageScore: null, recent: [] };
+  const [totals, recent] = await Promise.all([
+    redis.hgetall<Record<string, number | string>>(TOTALS_KEY),
+    redis.lrange<AnonymousAudit>(ANON_KEY, 0, 2),
+  ]);
+  const total = Number(totals?.audits ?? 0) || 0;
+  const sum = Number(totals?.scoreSum ?? 0) || 0;
+  return { total, averageScore: total ? Math.round(sum / total) : null, recent };
 }
 
 export async function loadReport(id: string): Promise<SavedReport | null> {

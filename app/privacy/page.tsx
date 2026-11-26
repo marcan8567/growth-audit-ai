@@ -75,7 +75,8 @@ export default function PrivacyPage() {
             <p>
               Each report is stored with Upstash, Inc. (database in the USA) so it can be opened from its link. Reports contain
               only information from the audited website, not data about the person who ran the audit. Visitors&apos; reports are
-              deleted automatically after six months.
+              deleted automatically after six months. The homepage shows how many audits have been run, their average score and
+              the newest results (score, grade, weakest area and time), without naming the website.
             </p>
           </section>
 

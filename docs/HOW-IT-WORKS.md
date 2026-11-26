@@ -130,6 +130,7 @@ The homepage sample, the demo video and the README screenshots all show an audit
 | **Decent but imperfect on purpose** | Clear services and pricing, but no social profiles and a small blog, so the report shows strengths and real gaps |
 | **Clearly labelled** | Every page footer says the company, clients, reviews and prices are made up; clients use Microsoft's well-known sample names (Contoso, Fabrikam, Northwind Traders); every Stryon report on this site carries a "Sample report" note; Google is asked not to index it; the email address uses the reserved `.example` domain |
 | **Reports of real companies still work** | Anyone can audit any site, and owner audits still get a permanent link, but they are no longer shown on the homepage |
+| **Anonymous numbers instead of a list of companies** | The homepage shows how many websites were audited, the average score and the three newest results (score, grade, weakest area, time) with the website left out. Social proof that grows by itself, without exposing anyone. Stored as a running total and a short list in Redis (`totals:<env>`, `anon:<env>`), updated on every save; the demo company is not counted. Shown once there are at least 10 audits |
 
 **Nice detail:** the audit spotted that the client names were placeholders ("Replace generic mock client names like Fabrikam, Contoso…"), which is exactly what a sharp consultant would flag.
 
