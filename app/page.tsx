@@ -206,43 +206,62 @@ export default async function Home() {
 function AuditsSoFar({ overview }: { overview: AuditOverview }) {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-20">
-      <div className="grid gap-8 rounded-2xl border border-ink/10 p-6 sm:p-8 lg:grid-cols-12 lg:items-center">
-        <div className="flex gap-10 lg:col-span-4">
-          <div>
-            <p className="text-5xl font-bold tracking-tight tabular-nums">{overview.total}</p>
-            <p className="mt-1 text-sm text-ink-soft">websites audited</p>
-          </div>
-          {overview.averageScore !== null && (
+      <div className="relative overflow-hidden rounded-3xl bg-ink p-8 text-white sm:p-10">
+        {/* A soft glow in the logo's yellow, top right */}
+        <div aria-hidden="true" className="pointer-events-none absolute -right-32 -top-40 h-96 w-96 rounded-full bg-marker/20 blur-3xl" />
+        <div className="relative grid gap-10 lg:grid-cols-12 lg:items-center">
+          <div className="grid grid-cols-2 gap-8 lg:col-span-4">
             <div>
-              <p className="text-5xl font-bold tracking-tight tabular-nums">
-                {overview.averageScore}
-                <span className="text-lg font-semibold text-ink-soft">/100</span>
-              </p>
-              <p className="mt-1 text-sm text-ink-soft">average score</p>
+              <p className="text-6xl font-bold tracking-tight tabular-nums">{overview.total}</p>
+              <div className="mt-3 h-1 w-10 rounded-full bg-marker" />
+              <p className="mt-2 text-sm text-white/60">websites audited</p>
             </div>
-          )}
-        </div>
-        <div className="lg:col-span-8">
-          <p className="text-sm font-semibold">Latest audits</p>
-          <ul className="mt-3 grid gap-3 sm:grid-cols-3">
-            {overview.recent.map((a) => (
-              <li key={a.createdAt} className="rounded-xl bg-mist p-4">
-                <p className="flex items-baseline justify-between gap-2">
-                  <span>
-                    <span className={`text-3xl font-bold tracking-tight ${scoreText(a.score / 10)}`}>{a.score}</span>
-                    <span className="text-sm text-ink-soft">/100</span>
-                  </span>
-                  <span className="text-xs text-ink-soft">{timeAgo(a.createdAt)}</span>
+            {overview.averageScore !== null && (
+              <div>
+                <p className="text-6xl font-bold tracking-tight tabular-nums">
+                  {overview.averageScore}
+                  <span className="text-xl font-semibold text-white/50">/100</span>
                 </p>
-                {a.weakest && (
-                  <p className="mt-2 text-sm leading-snug">
-                    <span className="text-ink-soft">Weakest area:</span> {a.weakest}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-ink-soft">Websites are not shown: every report stays private to whoever has its link.</p>
+                <div className="mt-3 h-1 w-full max-w-[8rem] rounded-full bg-white/15">
+                  <div className="h-1 rounded-full bg-marker" style={{ width: `${overview.averageScore}%` }} />
+                </div>
+                <p className="mt-2 text-sm text-white/60">average score</p>
+              </div>
+            )}
+          </div>
+
+          <div className="lg:col-span-8">
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              <span aria-hidden="true" className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-marker opacity-60 motion-reduce:animate-none" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-marker" />
+              </span>
+              Latest audits
+            </p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+              {overview.recent.map((a) => (
+                <li key={a.createdAt} className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p>
+                      <span className="text-4xl font-bold tracking-tight tabular-nums">{a.score}</span>
+                      <span className="text-sm text-white/50">/100</span>
+                    </p>
+                    <span className="text-xs text-white/50">{timeAgo(a.createdAt)}</span>
+                  </div>
+                  <div className="mt-3 h-1 rounded-full bg-white/10">
+                    <div className="h-1 rounded-full bg-marker" style={{ width: `${a.score}%` }} />
+                  </div>
+                  {a.weakest && (
+                    <div className="mt-4">
+                      <p className="text-xs text-white/50">Weakest area</p>
+                      <p className="mt-1.5 inline-block rounded-full bg-marker px-2.5 py-0.5 text-xs font-semibold text-ink">{a.weakest}</p>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs text-white/50">Websites are not shown: every report stays private to whoever has its link.</p>
+          </div>
         </div>
       </div>
     </section>
