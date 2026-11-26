@@ -583,10 +583,13 @@ function Posts({ pack, site, reportId }: { pack: ContentPack; site?: WebsiteSumm
       title={posts.length > 1 ? "Social media posts" : "Social media post"}
       subtitle={`Ready to post, in the brand's voice, previewed as they would look on ${posts.map((p) => p.platform).join(" and ")}.`}
     >
-      <div className={`grid items-start gap-5 ${posts.length > 1 ? "md:grid-cols-2" : "max-w-md"}`}>
+      {/* Both cards stretch to the same height, so the copy buttons underneath line up. */}
+      <div className={`grid gap-5 ${posts.length > 1 ? "md:grid-cols-2" : "max-w-md"}`}>
         {posts.map((post, i) => (
-          <div key={i}>
-            <SocialPostPreview post={post} brand={brand} domain={domain} socialLinks={site?.socialLinks ?? []} />
+          <div key={i} className="flex flex-col">
+            <div className="flex-1">
+              <SocialPostPreview post={post} brand={brand} domain={domain} socialLinks={site?.socialLinks ?? []} />
+            </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
               <CopyButton
                 text={postText(post)}
@@ -594,6 +597,10 @@ function Posts({ pack, site, reportId }: { pack: ContentPack; site?: WebsiteSumm
                 className="rounded-md border border-ink/20 bg-white px-2.5 py-1 font-medium hover:border-ink"
               />
               <span className="text-ink-soft">Theme: {post.pillar}</span>
+              {/* X has a 280-character limit; older reports were written before it, so only show the count when it fits. */}
+              {post.platform === "X" && postText(post).length <= 280 && (
+                <span className="ml-auto text-stone-400">{postText(post).length}/280 characters</span>
+              )}
             </div>
           </div>
         ))}

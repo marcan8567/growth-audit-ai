@@ -54,7 +54,7 @@ const SYSTEM_FONT = { fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI"
 
 function LinkedInPost({ post, brand, domain }: Props) {
   return (
-    <div style={SYSTEM_FONT} className="overflow-hidden rounded-lg border border-[#e0dfdc] bg-white text-[13px] text-[#191919]">
+    <div style={SYSTEM_FONT} className="flex h-full flex-col overflow-hidden rounded-lg border border-[#e0dfdc] bg-white text-[13px] text-[#191919]">
       <div className="flex items-start gap-2 px-4 pt-3">
         <Avatar brand={brand} domain={domain} size={40} shape="square" />
         <div className="min-w-0 flex-1 leading-tight">
@@ -66,8 +66,11 @@ function LinkedInPost({ post, brand, domain }: Props) {
         </div>
         <span className="shrink-0 text-[13px] font-semibold text-[#0a66c2]">+ Follow</span>
       </div>
-      <ExpandableText post={post} tagColor="text-[#0a66c2]" moreLabel="…see more" className="px-4 pt-2 pb-2" />
-      {hasVisual(post) && <Visual post={post} brand={brand} domain={domain} aspect="aspect-[1.91/1]" />}
+      {/* Grows to fill the card, so the action bar sits at the bottom when the X post next to it is taller */}
+      <div className="flex-1">
+        <ExpandableText post={post} tagColor="text-[#0a66c2]" moreLabel="…see more" className="px-4 pt-2 pb-2" />
+        {hasVisual(post) && <Visual post={post} brand={brand} domain={domain} aspect="aspect-[1.91/1]" />}
+      </div>
       <ActionBar
         color="text-[#666]"
         items={[
@@ -83,12 +86,11 @@ function LinkedInPost({ post, brand, domain }: Props) {
 
 function XPost({ post, brand, domain, socialLinks }: Props) {
   const handle = handleFrom(socialLinks, "X", brand.name);
-  const length = postText(post).length;
   return (
-    <div>
-      <div style={SYSTEM_FONT} className="flex gap-3 rounded-2xl border border-[#cfd9de] bg-white px-4 py-3 text-[14px] text-[#0f1419]">
+    <div className="h-full">
+      <div style={SYSTEM_FONT} className="flex h-full gap-3 rounded-2xl border border-[#cfd9de] bg-white px-4 py-3 text-[14px] text-[#0f1419]">
         <Avatar brand={brand} domain={domain} size={36} shape="circle" />
-        <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
           <p className="flex items-center gap-1 truncate leading-5">
             <span className="truncate font-bold">{brand.name}</span>
             <span className="truncate text-[#536471]">@{handle}</span>
@@ -102,7 +104,7 @@ function XPost({ post, brand, domain, socialLinks }: Props) {
               <Visual post={post} brand={brand} domain={domain} aspect="aspect-[16/9]" />
             </div>
           )}
-          <div className="mt-3 flex max-w-md justify-between text-[#536471]">
+          <div className="mt-auto flex max-w-md justify-between pt-3 text-[#536471]">
             <CommentIcon />
             <RepostIcon />
             <HeartIcon />
@@ -111,8 +113,6 @@ function XPost({ post, brand, domain, socialLinks }: Props) {
           </div>
         </div>
       </div>
-      {/* Older reports were written before the 280-character rule; only show the count when it fits. */}
-      {length <= 280 && <p className="mt-1 text-right text-xs text-stone-400">{length}/280 characters</p>}
     </div>
   );
 }
