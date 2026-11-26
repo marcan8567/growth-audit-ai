@@ -8,7 +8,7 @@ export const SITE = {
   /** The fictional company used for the sample report and demo video (repo: marcan8567/stryon-labs). */
   demoSiteDomain: "stryon-labs.vercel.app",
   /** The saved report shown as the homepage sample: an audit of the demo site (saved with the access code, so it never expires). */
-  sampleReportId: process.env.SAMPLE_REPORT_ID || "FEohezETg8",
+  sampleReportId: process.env.SAMPLE_REPORT_ID || "FrbKJGx2Kq",
 
   /**
    * Details for the legal notice (Aviso legal, Art. 10 LSSI-CE) and the privacy policy, under Spanish law.
