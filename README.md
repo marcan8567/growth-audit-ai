@@ -72,7 +72,7 @@ flowchart LR
 | Time per audit | about 55 seconds (PageSpeed and the AI provider vary) |
 | Cost per audit | about $0.026, measured per step from logged token counts |
 | Cost cut | about 60%, by moving two steps to a cheaper model and turning the model's hidden "thinking" down to low |
-| Quote accuracy | typically every quote verified on the site (for example 10 of 10 on the sample report) |
+| Quote accuracy | typically every quote verified on the site (for example 9 of 9 on the sample report) |
 
 ## Built for growth
 
