@@ -7,6 +7,7 @@ import { normalizeInputUrl } from "@/lib/reader/url";
 import { fetchPageSpeed, isPageSpeedConfigured, type PageSpeedResult } from "@/lib/reader/pagespeed";
 import { runAutomationPlan } from "@/lib/steps/automation-plan";
 import { runKeywords } from "@/lib/steps/keywords";
+import { MAX_COMPETITORS, runCompetitors } from "@/lib/steps/competitors";
 import { runBrandVoice } from "@/lib/steps/brand-voice";
 import { runContentPack } from "@/lib/steps/content-pack";
 import { runGrowthAudit, type GrowthAuditResult } from "@/lib/steps/growth-audit";
@@ -34,7 +35,7 @@ export const maxDuration = 180;
  * doesn't throw away the rest of the report.
  */
 export async function POST(request: Request) {
-  let body: { url?: unknown; accessCode?: unknown; lang?: unknown };
+  let body: { url?: unknown; accessCode?: unknown; lang?: unknown; competitors?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -43,11 +44,27 @@ export async function POST(request: Request) {
 
   const url = typeof body.url === "string" ? body.url : "";
   // Check the address before the rate limit, so a typo doesn't use up one of the visitor's free audits.
+  let mainHost: string;
   try {
-    normalizeInputUrl(url);
+    mainHost = normalizeInputUrl(url).hostname.replace(/^www./, "");
   } catch (err) {
     return Response.json({ error: err instanceof Error ? err.message : "Invalid website address." }, { status: 400 });
   }
+
+  // Optional competitors: up to two other websites, checked the same way. Empty fields are ignored;
+  // duplicates and the audited site itself are dropped.
+  const competitors: string[] = [];
+  for (const raw of Array.isArray(body.competitors) ? body.competitors : []) {
+    if (typeof raw !== "string" || !raw.trim()) continue;
+    let host: string;
+    try {
+      host = normalizeInputUrl(raw).hostname.replace(/^www./, "");
+    } catch (err) {
+      return Response.json({ error: `Competitor: ${err instanceof Error ? err.message : "invalid website address."}` }, { status: 400 });
+    }
+    if (host !== mainHost && !competitors.some((c) => normalizeInputUrl(c).hostname.replace(/^www./, "") === host)) competitors.push(raw.trim());
+  }
+  if (competitors.length > MAX_COMPETITORS) competitors.length = MAX_COMPETITORS;
 
   // Access code, or a free audit within the daily limits (see lib/store/rate-limit.ts).
   const access = await checkAccess(request, body.accessCode);
@@ -103,6 +120,9 @@ export async function POST(request: Request) {
           : (send({ type: "step", step: "speed", status: "skipped", message: "Not configured (no Google PageSpeed API key)." }),
             Promise.resolve(null));
 
+        // Competitors start straight away too; they only need their own websites.
+        const rivals = competitors.length ? step("competitors", () => runCompetitors(competitors, lang)) : Promise.resolve(null);
+
         // 1. Read the website. Nothing else can run without it, so a failure here ends the audit.
         send({ type: "step", step: "read", status: "running" });
         const started = Date.now();
@@ -125,6 +145,7 @@ export async function POST(request: Request) {
           speed.then((s) => step("audit", () => runGrowthAudit(site, [...checks, ...(s?.checks ?? [])], lang))),
           step("automation", () => runAutomationPlan(site, checks, lang)),
           step("keywords", () => runKeywords(site, lang)),
+          rivals,
           brandVoice.then(async (voice) => {
             if (voice) await step("contentPack", () => runContentPack(site, voice, lang));
             else send({ type: "step", step: "contentPack", status: "error", message: "Skipped, because the brand voice step failed." });

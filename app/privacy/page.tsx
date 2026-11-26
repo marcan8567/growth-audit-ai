@@ -63,7 +63,7 @@ export default function PrivacyPage() {
           <section>
             <h2>4. Running an audit</h2>
             <p>
-              The website address you enter is used to read that website&apos;s public pages. Their content is sent to Google
+              The website address you enter, and any competitor websites you add, are used to read those websites&apos; public pages. Their content is sent to Google
               (Google LLC / Google Ireland Ltd.) for analysis with the Gemini API, and the address to Google PageSpeed Insights
               for speed measurements. This concerns public company content, not data about you. Legal basis: Art. 6(1)(b) and
               (f) GDPR.

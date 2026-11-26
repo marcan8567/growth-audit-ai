@@ -11,6 +11,7 @@ import { trackClick } from "@/lib/track-client";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { LangPicker } from "@/components/lang-picker";
+import { CompetitorFields } from "@/components/competitor-fields";
 import { parseLang, type Lang } from "@/lib/i18n";
 
 type Status = "idle" | "running" | "done" | "error" | "skipped";
@@ -24,14 +25,17 @@ const STEPS: { id: StepId; label: string; detail: string }[] = [
   { id: "automation", label: "Planning automations", detail: "The three workflows most worth automating" },
   { id: "contentPack", label: "Writing LinkedIn and X posts", detail: "Two ready-to-post posts in the brand's voice" },
   { id: "keywords", label: "Finding keywords", detail: "What the site targets, checked in code, plus five to add" },
+  { id: "competitors", label: "Scoring competitors", detail: "The same six areas for each competitor you added" },
 ];
 
-const IDLE: Record<StepId, Status> = { speed: "idle", read: "idle", brandVoice: "idle", audit: "idle", automation: "idle", contentPack: "idle", keywords: "idle" };
+const IDLE: Record<StepId, Status> = { speed: "idle", read: "idle", brandVoice: "idle", audit: "idle", automation: "idle", contentPack: "idle", keywords: "idle", competitors: "idle" };
 
 export default function AuditPage() {
   const [url, setUrl] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [lang, setLang] = useState<Lang>("en");
+  const [rivals, setRivals] = useState<string[]>(["", ""]);
+  const [withCompetitors, setWithCompetitors] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Record<StepId, Status>>(IDLE);
   const [timing, setTiming] = useState<Partial<Record<StepId, number>>>({});
@@ -49,21 +53,25 @@ export default function AuditPage() {
     const params = new URLSearchParams(window.location.search);
     const fromHomepage = params.get("url");
     const langFromHomepage = parseLang(params.get("lang"));
+    const rivalsFromHomepage = [params.get("c1") ?? "", params.get("c2") ?? ""];
     setLang(langFromHomepage);
+    setRivals(rivalsFromHomepage);
     if (!fromHomepage) return;
     window.history.replaceState(null, "", "/audit");
     setUrl(fromHomepage);
-    void startAudit(fromHomepage, langFromHomepage);
+    void startAudit(fromHomepage, langFromHomepage, rivalsFromHomepage);
     // Runs once on page load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function runAudit(e: React.FormEvent) {
     e.preventDefault();
-    void startAudit(url, lang);
+    void startAudit(url, lang, rivals);
   }
 
-  async function startAudit(url: string, lang: Lang) {
+  async function startAudit(url: string, lang: Lang, competitors: string[]) {
+    const requested = competitors.map((c) => c.trim()).filter(Boolean);
+    setWithCompetitors(requested.length > 0);
     setBusy(true);
     setError(null);
     setResults({ lang }); // so the report's labels appear in the chosen language from the first section
@@ -79,7 +87,7 @@ export default function AuditPage() {
       const res = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, accessCode, lang }),
+        body: JSON.stringify({ url, accessCode, lang, competitors: requested }),
       });
       if (!res.ok || !res.body) {
         const data = await res.json().catch(() => ({}));
@@ -180,8 +188,9 @@ export default function AuditPage() {
             {busy ? "Running…" : "Run audit"}
           </button>
         </form>
-        <div className="-mt-6 print:hidden">
+        <div className="-mt-6 flex flex-col gap-4 print:hidden">
           <LangPicker value={lang} onChange={setLang} />
+          <CompetitorFields values={rivals} onChange={setRivals} />
         </div>
   
         {startedAt && (
@@ -196,6 +205,7 @@ export default function AuditPage() {
             failed={Boolean(error)}
             shareUrl={shareUrl}
             reportId={reportId}
+            withCompetitors={withCompetitors}
           />
         )}
   
@@ -221,6 +231,7 @@ function Progress({
   failed,
   shareUrl,
   reportId,
+  withCompetitors,
 }: {
   target: string | null;
   status: Record<StepId, Status>;
@@ -232,7 +243,9 @@ function Progress({
   failed: boolean;
   shareUrl: string | null;
   reportId: string | null;
+  withCompetitors: boolean;
 }) {
+  const steps = STEPS.filter((s) => s.id !== "competitors" || withCompetitors);
   const [now, setNow] = useState(Date.now());
   const [showSteps, setShowSteps] = useState(false);
 
@@ -243,9 +256,9 @@ function Progress({
     return () => clearInterval(tick);
   }, [busy]);
 
-  const finished = STEPS.filter((s) => ["done", "error", "skipped"].includes(status[s.id])).length;
+  const finished = steps.filter((s) => ["done", "error", "skipped"].includes(status[s.id])).length;
   const seconds = Math.max(0, Math.round(((finishedAt ?? now) - startedAt) / 1000));
-  const complete = !busy && !failed && finished === STEPS.length;
+  const complete = !busy && !failed && finished === steps.length;
   const open = busy || failed || showSteps;
 
   return (
@@ -262,7 +275,7 @@ function Progress({
                   : "The audit stopped"}
             </p>
             <p className="text-sm text-ink-soft">
-              {complete ? (shareUrl ? "Your report is saved and has its own link." : "Your report is below.") : `${finished} of ${STEPS.length} steps, ${seconds}s`}
+              {complete ? (shareUrl ? "Your report is saved and has its own link." : "Your report is below.") : `${finished} of ${steps.length} steps, ${seconds}s`}
             </p>
           </div>
         </div>
@@ -291,9 +304,9 @@ function Progress({
 
       {/* Overall progress */}
       {/* The logo's yellow fills the bar as the steps finish. */}
-      <div className="mt-5 h-4 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={STEPS.length} aria-valuenow={finished}>
+      <div className="mt-5 h-4 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={finished}>
         {(() => {
-          const share = Math.max(finished / STEPS.length, busy ? 0.04 : 0);
+          const share = Math.max(finished / steps.length, busy ? 0.04 : 0);
           return (
             <div
               className={`h-full rounded-full transition-[width] duration-700 ease-out ${failed ? "bg-red-500" : ""}`}
@@ -310,11 +323,11 @@ function Progress({
 
       {open && (
         <ol className="mt-5 flex flex-col">
-          {STEPS.map((step, i) => {
+          {steps.map((step, i) => {
             const s = status[step.id];
             return (
               <li key={step.id} className="relative flex gap-3 pb-4 last:pb-0">
-                {i < STEPS.length - 1 && <span aria-hidden="true" className="absolute left-[11px] top-7 h-[calc(100%-1.75rem)] w-px bg-ink/10" />}
+                {i < steps.length - 1 && <span aria-hidden="true" className="absolute left-[11px] top-7 h-[calc(100%-1.75rem)] w-px bg-ink/10" />}
                 <Icon status={s} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">

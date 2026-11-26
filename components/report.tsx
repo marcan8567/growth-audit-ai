@@ -9,6 +9,7 @@ import type { ContentPack } from "@/lib/schemas/content-pack";
 import type { BrandVoiceResult } from "@/lib/steps/brand-voice";
 import type { GrowthAuditResult } from "@/lib/steps/growth-audit";
 import type { KeywordPlacement, KeywordsResult } from "@/lib/steps/keywords";
+import type { CompetitorResult } from "@/lib/steps/competitors";
 import { postText, SocialPostPreview } from "@/components/social-post";
 import { SITE } from "@/lib/site";
 import { trackClick } from "@/lib/track-client";
@@ -40,7 +41,7 @@ export function Report({
   /** The saved report's id, sent with button clicks so lead alerts can name the website. */
   reportId?: string | null;
 }) {
-  const { checks, speed, brandVoice, audit, automation, contentPack, keywords } = data;
+  const { checks, speed, brandVoice, audit, automation, contentPack, keywords, competitors } = data;
   // The company logo is loaded through our own server (/api/logo), never directly from the company's
   // site, so visitors' IP addresses aren't sent to third parties. Until the report is saved, the
   // company's initial is shown instead.
@@ -53,6 +54,7 @@ export function Report({
   const sections = [
     audit && site && { id: "overview", label: t.menu.overview },
     audit && { id: "scores", label: t.menu.scores },
+    audit && competitors?.length && { id: "compare", label: t.menu.compare },
     audit && { id: "quick-wins", label: t.menu.quickWins },
     checks && { id: "checks", label: t.menu.checks },
     speed && { id: "speed", label: t.menu.speed },
@@ -71,6 +73,7 @@ export function Report({
       {audit && site && <Cover audit={audit} site={site} createdAt={createdAt} shareUrl={shareUrl} reportId={reportId} />}
       {sections.length > 2 && <SectionMenu sections={sections} />}
       {audit && <ScoreGrid audit={audit} />}
+      {audit && site && competitors?.length ? <Compare audit={audit} site={site} competitors={competitors} /> : null}
       {audit && <QuickWins audit={audit} domain={site?.domain} reportId={reportId} />}
       {checks && site && <Checks checks={checks} site={site} />}
       {speed && <Speed speed={speed} />}
@@ -80,7 +83,13 @@ export function Report({
       {contentPack && <Posts pack={contentPack} site={site} reportId={reportId} />}
       {automation && <Automations plan={automation} />}
       {audit && reportId && <LeadForm domain={site?.domain} reportId={reportId} />}
-      {site && <Disclaimer domain={site.domain} name={site.brand?.name ?? site.domain} />}
+      {site && (
+        <Disclaimer
+          domain={site.domain}
+          name={site.brand?.name ?? site.domain}
+          competitors={(competitors ?? []).filter((c) => "overallScore" in c).map((c) => c.domain)}
+        />
+      )}
     </div>
     </TextContext.Provider>
   );
@@ -333,6 +342,111 @@ function ScoreDetails({ audit }: { audit: GrowthAuditResult }) {
           </details>
         ))}
       </div>
+    </Section>
+  );
+}
+
+/* ---------- Competitor comparison ---------- */
+
+/**
+ * The optional comparison: the same six areas for this site and up to two competitors. The leader in each row
+ * is marked, and the lines under the table (where this site leads or trails) are worked out by code, not AI.
+ */
+function Compare({ audit, site, competitors }: { audit: GrowthAuditResult; site: WebsiteSummary; competitors: CompetitorResult[] }) {
+  const { t, lang } = useText();
+  const scored = competitors.filter((c): c is Extract<CompetitorResult, { overallScore: number }> => "overallScore" in c);
+  const failed = competitors.filter((c) => "error" in c);
+  const columns = [
+    { key: "me", name: site.brand?.name ?? site.domain, domain: site.domain, me: true, overall: audit.overallScore, scores: Object.fromEntries(audit.categories.map((c) => [c.id, c.score])) },
+    ...scored.map((c) => ({ key: c.domain, name: c.name, domain: c.domain, me: false, overall: c.overallScore, scores: Object.fromEntries(c.categories.map((x) => [x.id, x.score])) })),
+  ];
+  const label = (id: string) => t.category[id] ?? audit.categories.find((c) => c.id === id)?.label ?? id;
+  const ids = audit.categories.map((c) => c.id);
+
+  // Where this site is ahead of every competitor, and where each competitor is ahead of it.
+  const leads = ids.filter((id) => scored.length > 0 && scored.every((c) => (columns[0].scores[id] ?? 0) > (c.categories.find((x) => x.id === id)?.score ?? 0)));
+  const trails = scored
+    .map((c) => ({ name: c.name, areas: ids.filter((id) => (c.categories.find((x) => x.id === id)?.score ?? 0) > (columns[0].scores[id] ?? 0)) }))
+    .filter((r) => r.areas.length);
+
+  return (
+    <Section id="compare" title={t.compareTitle} subtitle={t.compareSubtitle}>
+      {scored.length > 0 && (
+        <div className="overflow-x-auto rounded-xl border border-ink/10 bg-white">
+          <table className="w-full text-sm">
+            <thead className="border-b border-ink/10 text-left">
+              <tr>
+                <th className="px-4 py-3" />
+                {columns.map((col) => (
+                  <th key={col.key} className="px-4 py-3 text-center align-bottom">
+                    <span className={`block font-semibold ${col.me ? "text-ink" : "text-ink-soft"}`}>{col.name}</span>
+                    <span className="block text-xs font-normal text-ink-soft">{col.me ? t.thisSite : col.domain}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-ink/5">
+              {ids.map((id) => {
+                const best = Math.max(...columns.map((col) => col.scores[id] ?? 0));
+                return (
+                  <tr key={id}>
+                    <td className="px-4 py-3 text-ink-soft">{label(id)}</td>
+                    {columns.map((col) => {
+                      const score = col.scores[id] ?? 0;
+                      return (
+                        <td key={col.key} className="px-4 py-3 text-center">
+                          <span
+                            className={`inline-flex min-w-9 justify-center rounded-full px-2 py-0.5 font-bold tabular-nums ${scoreText(score)} ${
+                              score === best ? "bg-marker/40 ring-1 ring-marker" : ""
+                            }`}
+                          >
+                            {score}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+              <tr className="bg-mist/60">
+                <td className="px-4 py-3 font-semibold">{t.overall}</td>
+                {columns.map((col) => {
+                  const best = Math.max(...columns.map((c) => c.overall));
+                  return (
+                    <td key={col.key} className="px-4 py-3 text-center">
+                      <span className={`text-lg font-bold tabular-nums ${scoreText(col.overall / 10)} ${col.overall === best ? "underline decoration-marker decoration-4 underline-offset-4" : ""}`}>
+                        {col.overall}
+                      </span>
+                      <span className="text-xs text-ink-soft">/100</span>
+                    </td>
+                  );
+                })}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+      {(leads.length > 0 || trails.length > 0) && (
+        <ul className="flex flex-col gap-1.5 text-sm">
+          {leads.length > 0 && (
+            <li className="flex gap-2">
+              <span className="text-emerald-700">▲</span>
+              {t.leads(joinList(leads.map(label), lang))}
+            </li>
+          )}
+          {trails.map((r) => (
+            <li key={r.name} className="flex gap-2">
+              <span className="text-amber-600">▼</span>
+              {t.trails(joinList(r.areas.map(label), lang), r.name)}
+            </li>
+          ))}
+        </ul>
+      )}
+      {failed.map((c) => (
+        <p key={c.domain} className="text-xs text-ink-soft">
+          {t.compareFailed(c.domain)}
+        </p>
+      ))}
     </Section>
   );
 }

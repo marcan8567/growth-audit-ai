@@ -1,7 +1,7 @@
 // Messages the server streams to the browser, one JSON object per line (NDJSON).
 // Shared by the API route and the page, so both sides agree on the format.
 
-export type StepId = "speed" | "read" | "brandVoice" | "audit" | "automation" | "contentPack" | "keywords";
+export type StepId = "speed" | "read" | "brandVoice" | "audit" | "automation" | "contentPack" | "keywords" | "competitors";
 
 export type ProgressEvent =
   | { type: "step"; step: StepId; status: "running" }

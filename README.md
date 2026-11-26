@@ -26,6 +26,8 @@ Scores for six growth areas, Google speed data, the brand voice, ready-to-post L
 | **Two social posts** | One for LinkedIn and one for X, previewed as they'd look in each feed with the company's name, logo and colour |
 | **Automation plan** | The three marketing workflows most worth automating: trigger → steps → result, tools, and where AI helps |
 | **Keyword focus** | The search phrases the site targets, with where each appears (title, H1, headings, meta, URL) measured in code, plus five phrases worth adding. Not Google rankings |
+| **Competitor comparison (optional)** | Add up to two competitors and get the six areas side by side, with who leads where worked out by code |
+| **Save as PDF** | A print layout without menus or buttons, saved as a PDF from the browser |
 | **English, Spanish or German** | The whole report in the chosen language: AI text, code checks and labels. Quotes stay word for word in the website's own language, so they can still be checked |
 | **A link to share** | Every report gets its own page and a preview card for LinkedIn, Slack and WhatsApp |
 

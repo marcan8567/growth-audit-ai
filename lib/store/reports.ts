@@ -8,6 +8,7 @@ import type { ContentPack } from "@/lib/schemas/content-pack";
 import type { BrandVoiceResult } from "@/lib/steps/brand-voice";
 import type { GrowthAuditResult } from "@/lib/steps/growth-audit";
 import type { KeywordsResult } from "@/lib/steps/keywords";
+import type { CompetitorResult } from "@/lib/steps/competitors";
 import type { Lang } from "@/lib/i18n";
 import { SITE } from "@/lib/site";
 import { getRedis } from "./redis";
@@ -22,6 +23,8 @@ export interface ReportData {
   automation?: AutomationPlan;
   contentPack?: ContentPack;
   keywords?: KeywordsResult;
+  /** Optional comparison: up to two competitors' scores. */
+  competitors?: CompetitorResult[];
   /** The report language; older reports have none and are English. */
   lang?: Lang;
 }

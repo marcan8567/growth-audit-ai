@@ -254,6 +254,19 @@ A download button on the report cover opens the browser's print dialog, where "S
 
 **Why not a PDF server?** Generating PDFs on the server needs a headless browser, which is heavy and slow on Vercel's free plan. The browser already does it well, for free, in the report's own language and fonts.
 
+## 21. Optional competitor comparison (`lib/steps/competitors.ts`)
+
+A fold-out "Compare with competitors (optional)" with two fields. Without competitors, nothing changes.
+
+| Decision | Why |
+| --- | --- |
+| **Same growth audit for each competitor** | Scores are only comparable if they come from the same prompt, checks and scoring |
+| **Competitors skip PageSpeed and the other AI steps** | Keeps the extra cost to about a cent per competitor and the extra time small; runs in parallel with the main audit (about 12 seconds in testing) |
+| **Only scores are kept for competitors** | The report is about the audited site; the comparison shows numbers, not a teardown of other companies |
+| **Who leads where is worked out by code** | "Ahead of every competitor in X", "Behind Y in Z" are simple comparisons of the scores, not AI judgement |
+| **Checked before the rate limit** | A typo in a competitor address doesn't use up a free audit; duplicates and the audited site itself are dropped |
+| **One failure doesn't stop the rest** | A competitor that can't be read gets a one-line note; the main audit and the other competitor carry on |
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.
