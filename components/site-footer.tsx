@@ -6,7 +6,7 @@ const GITHUB_PROFILE = new URL(SITE.repoUrl).origin + "/" + new URL(SITE.repoUrl
 /** The footer on every page: who built it, what the tool reads, and the legal links once the details are filled in. */
 export function SiteFooter() {
   return (
-    <footer className="bg-ink text-white">
+    <footer className="bg-ink text-white print:hidden">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-4 px-6 py-10 text-sm text-white/65">
         <div className="flex flex-col gap-1">
           <p>

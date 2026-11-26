@@ -35,7 +35,7 @@ export default async function SavedReportPage({ params }: Props) {
   return (
     <>
       <main className="mx-auto flex max-w-4xl flex-col gap-8 px-6 pb-20 pt-6">
-        <header className="flex items-center justify-between gap-4">
+        <header className="flex items-center justify-between gap-4 print:hidden">
           <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
             <Logo />
           </Link>

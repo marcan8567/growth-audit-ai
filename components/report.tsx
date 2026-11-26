@@ -67,7 +67,7 @@ export function Report({
 
   return (
     <TextContext.Provider value={{ t, lang }}>
-    <div className="flex flex-col gap-14 text-ink">
+    <div className="report-print flex flex-col gap-14 text-ink">
       {audit && site && <Cover audit={audit} site={site} createdAt={createdAt} shareUrl={shareUrl} reportId={reportId} />}
       {sections.length > 2 && <SectionMenu sections={sections} />}
       {audit && <ScoreGrid audit={audit} />}
@@ -118,7 +118,18 @@ function ShareButtons({ shareUrl, reportId, name, score }: { shareUrl: string; r
   ];
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 print:hidden">
+      <button
+        type="button"
+        onClick={() => saveAsPdf(t.cardLabel, name)}
+        title={t.savePdf}
+        aria-label={t.savePdf}
+        className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-ink text-ink hover:bg-ink hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
+      >
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+        </svg>
+      </button>
       <CopyButton
         text={url}
         label={t.shareReport}
@@ -145,6 +156,24 @@ function ShareButtons({ shareUrl, reportId, name, score }: { shareUrl: string; r
         ))}
     </div>
   );
+}
+
+/**
+ * Opens the browser's print dialog, where "Save as PDF" is one click. The print layout (app/globals.css)
+ * hides menus and buttons; here the score details are folded open and the file name is suggested.
+ */
+function saveAsPdf(label: string, name: string) {
+  const closed = [...document.querySelectorAll<HTMLDetailsElement>(".report-print details:not([open])")];
+  const title = document.title;
+  closed.forEach((d) => (d.open = true));
+  document.title = `${label} – ${name}`;
+  const restore = () => {
+    closed.forEach((d) => (d.open = false));
+    document.title = title;
+    window.removeEventListener("afterprint", restore);
+  };
+  window.addEventListener("afterprint", restore);
+  window.print();
 }
 
 /* ---------- Cover ---------- */
@@ -224,7 +253,7 @@ function SectionMenu({ sections }: { sections: { id: string; label: string }[] }
   return (
     <nav
       aria-label="Report sections"
-      className="sticky top-0 z-20 -mx-6 -my-8 border-b border-ink/10 bg-white/90 px-6 backdrop-blur supports-[backdrop-filter]:bg-white/75"
+      className="sticky top-0 print:hidden z-20 -mx-6 -my-8 border-b border-ink/10 bg-white/90 px-6 backdrop-blur supports-[backdrop-filter]:bg-white/75"
     >
       <ul className="flex gap-1 overflow-x-auto py-2 text-sm [scrollbar-width:none]">
         {sections.map((s) => (
@@ -609,7 +638,7 @@ function Posts({ pack, site, reportId }: { pack: ContentPack; site?: WebsiteSumm
       </div>
 
       {SITE.linkedinUrl && (
-        <div className="rounded-xl bg-ink p-6 text-white">
+        <div className="rounded-xl bg-ink p-6 text-white print:hidden">
           <h3 className="text-lg font-semibold">{t.contentPlanTitle(domain)}</h3>
           <p className="mt-2 max-w-[60ch] leading-relaxed text-white/80">{t.contentPlanText(joinList(pack.pillars.map((p) => p.name), lang))}</p>
           <LinkedInButton className="mt-4 px-5 py-2.5" onClick={() => trackClick("cta_contentplan", reportId)} />
@@ -718,7 +747,7 @@ function LeadForm({ domain, reportId }: { domain?: string; reportId: string }) {
   }
 
   return (
-    <section id="contact" className="scroll-mt-24 rounded-2xl bg-ink p-6 text-white sm:p-8">
+    <section id="contact" className="scroll-mt-24 rounded-2xl bg-ink p-6 text-white sm:p-8 print:hidden">
       <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">{t.leadTitle}</h2>

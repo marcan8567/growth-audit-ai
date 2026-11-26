@@ -133,7 +133,7 @@ export default function AuditPage() {
   return (
     <>
       <main className="mx-auto flex max-w-4xl flex-col gap-10 px-6 pb-20 pt-6">
-        <header>
+        <header className="print:hidden">
           <Link href="/" aria-label="Growth Audit AI, home" className="rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker">
             <Logo />
           </Link>
@@ -144,7 +144,7 @@ export default function AuditPage() {
           </p>
         </header>
   
-        <form onSubmit={runAudit} className="flex flex-col gap-3 sm:flex-row">
+        <form onSubmit={runAudit} className="flex flex-col gap-3 sm:flex-row print:hidden">
           <label className="sr-only" htmlFor="audit-url">
             Company website
           </label>
@@ -180,7 +180,7 @@ export default function AuditPage() {
             {busy ? "Running…" : "Run audit"}
           </button>
         </form>
-        <div className="-mt-6">
+        <div className="-mt-6 print:hidden">
           <LangPicker value={lang} onChange={setLang} />
         </div>
   
@@ -249,7 +249,7 @@ function Progress({
   const open = busy || failed || showSteps;
 
   return (
-    <section aria-live="polite" className="rounded-2xl border border-ink/10 bg-white p-5 text-ink sm:p-6">
+    <section aria-live="polite" className="rounded-2xl border border-ink/10 bg-white p-5 text-ink sm:p-6 print:hidden">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           {complete ? <Icon status="complete" large /> : busy ? <Icon status="running" large /> : <Icon status="error" large />}

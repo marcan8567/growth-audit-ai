@@ -248,6 +248,12 @@ A "Report language" choice on the form. The whole report comes back in that lang
 
 **Talking point:** "Adding a language didn't touch the prompts or schemas: one instruction, a text table, and the quote check still works because quotes are never translated."
 
+## 20. Save as PDF
+
+A download button on the report cover opens the browser's print dialog, where "Save as PDF" is one click. A print layout (`@media print` in `app/globals.css`) hides menus, buttons, forms, header and footer, keeps the colours, and avoids splitting cards across pages. Before printing, the "Why each score" sections are opened and the file name is suggested ("Growth audit – Company").
+
+**Why not a PDF server?** Generating PDFs on the server needs a headless browser, which is heavy and slow on Vercel's free plan. The browser already does it well, for free, in the report's own language and fonts.
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.

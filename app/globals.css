@@ -38,3 +38,40 @@ body {
     animation: none;
   }
 }
+
+/*
+ * "Save as PDF" (the report's print layout): only the report itself, white background, colours kept,
+ * cards never split across pages. Elements marked print:hidden (menus, buttons, forms) are left out.
+ */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .report-print li,
+  .report-print details,
+  .report-print tr,
+  .report-print figure,
+  .report-print .rounded-xl,
+  .report-print .rounded-2xl {
+    break-inside: avoid;
+  }
+  .report-print h2,
+  .report-print h3 {
+    break-after: avoid;
+  }
+  .report-print section {
+    scroll-margin: 0;
+  }
+  .report-print .shadow-lg,
+  .report-print [class*="shadow-"] {
+    box-shadow: none !important;
+  }
+}
