@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
-import { listRecentAudits, loadReport, type RecentAudit, type SavedReport } from "@/lib/store/reports";
+import { loadReport, type SavedReport } from "@/lib/store/reports";
 import { track } from "@/lib/store/stats";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
@@ -11,10 +11,9 @@ import { Testimonials } from "@/components/testimonials";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [sample, recent] = await Promise.all([
+  // The sample is an audit of Stryon Labs, a fictional agency built for this demo, so no real company is judged.
+  const [sample] = await Promise.all([
     loadReport(SITE.sampleReportId).catch(() => null),
-    // Only audits run with the access code are listed; visitors' reports stay private.
-    listRecentAudits(3, [SITE.sampleReportId]).catch(() => [] as RecentAudit[]),
     // Funnel count, done alongside so it doesn't slow the page down.
     track("home_view"),
   ]);
@@ -84,7 +83,6 @@ export default async function Home() {
           </div>
         </section>
 
-        {recent.length > 0 && <RecentAudits audits={recent} />}
 
         {/* What the report contains. Not a sequence, so no numbers. */}
         <section className="bg-mist">
@@ -182,46 +180,7 @@ export default async function Home() {
   );
 }
 
-/** The newest audits run with the access code, each linking to its full report. */
-function RecentAudits({ audits }: { audits: RecentAudit[] }) {
-  return (
-    <section className="mx-auto max-w-6xl px-6 pb-20">
-      <h2 className="text-2xl font-bold tracking-tight">Recent audits</h2>
-      <ul className="mt-6 grid gap-4 sm:grid-cols-3">
-        {audits.map((a) => (
-          <li key={a.id}>
-            <Link
-              href={`/r/${a.id}`}
-              className="group block rounded-xl border border-ink/15 p-5 hover:border-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-marker"
-            >
-              <p className="truncate text-lg font-semibold group-hover:underline">{a.domain}</p>
-              <p className="mt-3">
-                <span className={`text-4xl font-bold tracking-tight ${scoreText(a.score / 10)}`}>{a.score}</span>
-                <span className="text-ink-soft">/100</span>
-              </p>
-              <p className="mt-1 text-sm text-ink-soft">
-                {a.grade}, {timeAgo(a.createdAt)}
-              </p>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-/** "2 hours ago", "yesterday", "3 days ago", or the date for anything older than a month. */
-function timeAgo(iso: string): string {
-  const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (minutes < 60) return minutes <= 1 ? "just now" : `${minutes} minutes ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return hours === 1 ? "an hour ago" : `${hours} hours ago`;
-  const days = Math.round(hours / 24);
-  if (days < 30) return days === 1 ? "yesterday" : `${days} days ago`;
-  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-}
-
-/** A real saved report, shown as a printed scorecard with the key finding marked in highlighter. */
+/** The sample report (a real audit of a fictional company), shown as a scorecard with the key finding. */
 function SampleScorecard({ report, href }: { report: SavedReport; href: string }) {
   const audit = report.audit;
   if (!audit || !report.site) return null;
@@ -230,7 +189,15 @@ function SampleScorecard({ report, href }: { report: SavedReport; href: string }
     <figure className="rounded-xl border border-ink/15 bg-white p-6 shadow-[0_1px_0_rgba(23,32,51,0.08),0_20px_40px_-24px_rgba(23,32,51,0.35)] sm:p-8">
       <figcaption className="text-sm text-ink-soft">Sample report</figcaption>
       <div className="mt-2 flex items-baseline justify-between gap-4">
-        <p className="text-2xl font-bold tracking-tight">{report.site.domain}</p>
+        <div className="min-w-0">
+          <p className="text-2xl font-bold tracking-tight">{report.site.brand?.name ?? report.site.domain}</p>
+          <p className="mt-0.5 text-sm text-ink-soft">
+            A fictional AI agency{" "}
+            <a href={`https://${report.site.domain}`} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-ink">
+              we built for this demo
+            </a>
+          </p>
+        </div>
         <p className="shrink-0 text-right">
           <span className={`text-5xl font-bold tracking-tight ${scoreText(audit.overallScore / 10)}`}>
             {audit.overallScore}

@@ -6,6 +6,7 @@ import { redactReportForVisitor } from "@/lib/report-access";
 import { loadReport } from "@/lib/store/reports";
 import { track } from "@/lib/store/stats";
 import { Logo } from "@/components/logo";
+import { SITE } from "@/lib/site";
 import { SiteFooter } from "@/components/site-footer";
 
 // A saved report, read from Redis on every visit. Links look like /r/AbC123xYz_.
@@ -48,6 +49,17 @@ export default async function SavedReportPage({ params }: Props) {
         {/* The cover inside the report shows the company, score and date; this heading is for screen readers. */}
         <h1 className="sr-only">Growth audit of {report.site?.domain ?? "a website"}</h1>
   
+        {report.site?.domain === SITE.demoSiteDomain && (
+          <p className="rounded-xl border-l-4 border-marker bg-mist px-5 py-4 text-sm leading-relaxed text-ink">
+            <span className="font-semibold">Sample report.</span> Stryon Labs is a fictional AI agency we built as a demo
+            website. The audit itself is real: it was run by this tool on{" "}
+            <a href={`https://${SITE.demoSiteDomain}`} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+              {SITE.demoSiteDomain}
+            </a>
+            .
+          </p>
+        )}
+
         {/* Visitors' reports hide all but the first quick win; the owner's showcase audits are shown in full. */}
         <Report data={report.owner ? report : redactReportForVisitor(report)} createdAt={report.createdAt} shareUrl="current" reportId={report.id} />
       </main>
