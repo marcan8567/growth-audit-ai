@@ -64,6 +64,8 @@ export interface AuditOverview {
 const ENVIRONMENT = process.env.VERCEL_ENV ?? "local";
 const ANON_KEY = `anon:${ENVIRONMENT}`;
 const TOTALS_KEY = `totals:${ENVIRONMENT}`;
+// How many audits got each overall score (field "57" = 3 audits scored 57), for the benchmark line.
+const HISTOGRAM_KEY = `scorehist:${ENVIRONMENT}`;
 const ANON_KEEP = 20;
 // The owner's log of recent audits, with websites. Only readable through /stats with the admin code.
 const LOG_KEY = `auditlog:${ENVIRONMENT}`;
@@ -118,6 +120,7 @@ async function recordAnonymously(audit: GrowthAuditResult, createdAt: string) {
   await redis.ltrim(ANON_KEY, 0, ANON_KEEP - 1);
   await redis.hincrby(TOTALS_KEY, "audits", 1);
   await redis.hincrby(TOTALS_KEY, "scoreSum", audit.overallScore);
+  await redis.hincrby(HISTOGRAM_KEY, String(audit.overallScore), 1);
 }
 
 /** The newest audits with their websites, for the owner's /stats page only. */
@@ -125,6 +128,35 @@ export async function listAuditLog(limit = 50): Promise<AuditLogEntry[]> {
   const redis = getRedis();
   if (!redis) return [];
   return redis.lrange<AuditLogEntry>(LOG_KEY, 0, limit - 1);
+}
+
+export interface Benchmark {
+  total: number;
+  averageScore: number;
+  /** Share of audited websites with a lower score, 0–100. */
+  betterThan: number;
+}
+
+/**
+ * How a score compares with every website audited so far (the demo company not included).
+ * Null until there are at least 10 audits, so early numbers don't mislead.
+ */
+export async function getBenchmark(score: number): Promise<Benchmark | null> {
+  const redis = getRedis();
+  if (!redis) return null;
+  const histogram = (await redis.hgetall<Record<string, number | string>>(HISTOGRAM_KEY)) ?? {};
+  let total = 0;
+  let sum = 0;
+  let lower = 0;
+  for (const [key, value] of Object.entries(histogram)) {
+    const s = Number(key);
+    const n = Number(value) || 0;
+    total += n;
+    sum += s * n;
+    if (s < score) lower += n;
+  }
+  if (total < 10) return null;
+  return { total, averageScore: Math.round(sum / total), betterThan: Math.round((lower / total) * 100) };
 }
 
 /** The homepage numbers: how many websites were audited, their average score and the three newest results. */

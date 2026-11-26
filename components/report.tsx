@@ -13,6 +13,7 @@ import type { CompetitorResult } from "@/lib/steps/competitors";
 import { postText, SocialPostPreview } from "@/components/social-post";
 import { SITE } from "@/lib/site";
 import { trackClick } from "@/lib/track-client";
+import { BADGE_MIN_SCORE } from "@/lib/badge";
 import type { ReportData } from "@/lib/store/reports";
 import { LOCALES, type Lang } from "@/lib/i18n";
 import { REPORT_TEXT, joinList, type ReportText } from "@/lib/report-text";
@@ -82,6 +83,7 @@ export function Report({
       {brandVoice && <BrandVoice voice={brandVoice} />}
       {contentPack && <Posts pack={contentPack} site={site} reportId={reportId} />}
       {automation && <Automations plan={automation} />}
+      {audit && reportId && audit.overallScore >= BADGE_MIN_SCORE && <ScoreBadge audit={audit} reportId={reportId} />}
       {audit && reportId && <LeadForm domain={site?.domain} reportId={reportId} />}
       {site && (
         <Disclaimer
@@ -234,7 +236,44 @@ function Cover({
           </div>
         </div>
       </div>
+      <BenchmarkLine score={audit.overallScore} />
     </section>
+  );
+}
+
+/**
+ * Where this score sits among every website audited so far: a 0–100 scale with this score and the average.
+ * Loaded after the report, so it always reflects the latest numbers; hidden until there are 10 audits.
+ */
+function BenchmarkLine({ score }: { score: number }) {
+  const { t } = useText();
+  const [data, setData] = useState<{ total: number; averageScore: number; betterThan: number } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/benchmark?score=${score}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => !cancelled && setData(d))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [score]);
+  if (!data) return null;
+  return (
+    <div className="mt-8 border-t border-ink/10 pt-5">
+      <p className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
+        <span className="text-ink-soft">{t.benchmark(data.averageScore, data.total)}</span>
+        <span className="font-semibold">{t.betterThan(data.betterThan)}</span>
+      </p>
+      <div className="relative mt-3 h-2 rounded-full bg-mist" aria-hidden="true">
+        <div className="absolute inset-y-0 left-0 rounded-full bg-ink/10" style={{ width: `${data.averageScore}%` }} />
+        <div className="absolute -top-1 h-4 w-0.5 rounded-full bg-ink/40" style={{ left: `${data.averageScore}%` }} title="Average" />
+        <div
+          className={`absolute -top-1.5 h-5 w-5 -translate-x-1/2 rounded-full border-[3px] border-white shadow ${scoreBar(score / 10)}`}
+          style={{ left: `${score}%` }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -826,6 +865,43 @@ function FlowStep({ kind, label, text, last = false }: { kind: "trigger" | "step
         <span className={kind === "step" ? "text-ink-soft" : ""}>{text}</span>
       </div>
     </li>
+  );
+}
+
+/* ---------- Score badge ---------- */
+
+/**
+ * For top scores only (70+): an embeddable badge that links back to the report, so a good result
+ * becomes a reason for the company to show the tool on its own website.
+ */
+function ScoreBadge({ audit, reportId }: { audit: GrowthAuditResult; reportId: string }) {
+  const { t } = useText();
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
+  const badge = `${origin}/api/badge/${reportId}`;
+  const code = `<a href="${origin}/r/${reportId}"><img src="${badge}" alt="${t.badgeAlt(audit.overallScore)}" width="236" height="56"></a>`;
+  return (
+    <section className="flex flex-col gap-5 rounded-2xl border-2 border-marker bg-white p-6 sm:flex-row sm:items-center sm:p-8 print:hidden">
+      <div className="min-w-0 flex-1">
+        <h2 className="text-xl font-bold tracking-tight">{t.badgeTitle(t.grade[audit.grade] ?? audit.grade)}</h2>
+        <p className="mt-1 max-w-[52ch] text-sm leading-relaxed text-ink-soft">{t.badgeText}</p>
+        {origin && (
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <code className="min-w-0 flex-1 truncate rounded-lg bg-mist px-3 py-2 text-xs text-ink-soft">{code}</code>
+            <CopyButton
+              text={code}
+              label={t.copyCode}
+              copiedLabel={t.codeCopied}
+              className="shrink-0 rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-ink/85"
+            />
+          </div>
+        )}
+      </div>
+      {origin && (
+        // eslint-disable-next-line @next/next/no-img-element -- the badge exactly as other websites will show it
+        <img src={badge} alt={t.badgeAlt(audit.overallScore)} width={236} height={56} className="shrink-0" />
+      )}
+    </section>
   );
 }
 

@@ -91,6 +91,13 @@ export interface ReportText {
   leads: (areas: string) => string;
   trails: (areas: string, rival: string) => string;
   compareFailed: (domain: string) => string;
+  benchmark: (average: number, total: number) => string;
+  betterThan: (percent: number) => string;
+  badgeTitle: (grade: string) => string;
+  badgeText: string;
+  copyCode: string;
+  codeCopied: string;
+  badgeAlt: (score: number) => string;
 }
 
 const join = (items: string[], and: string) =>
@@ -207,6 +214,13 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
     leads: (a) => `Ahead of every competitor in ${a}.`,
     trails: (a, r) => `Behind ${r} in ${a}.`,
     compareFailed: (d) => `${d} couldn't be audited, so it's left out.`,
+    benchmark: (a, t) => `Average across ${t} audited websites: ${a}`,
+    betterThan: (p) => `better than ${p}%`,
+    badgeTitle: (g) => `A score worth showing: ${g}`,
+    badgeText: "Add this badge to your website. It links to this report, so visitors can see the details.",
+    copyCode: "Copy code",
+    codeCopied: "Code copied",
+    badgeAlt: (s) => `Growth score ${s}/100`,
   },
   es: {
     menu: {
@@ -318,6 +332,13 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
     leads: (a) => `Por delante de todos los competidores en ${a}.`,
     trails: (a, r) => `Por detrás de ${r} en ${a}.`,
     compareFailed: (d) => `No se pudo auditar ${d}, así que se ha omitido.`,
+    benchmark: (a, t) => `Media de ${t} sitios auditados: ${a}`,
+    betterThan: (p) => `mejor que el ${p}%`,
+    badgeTitle: (g) => `Una puntuación para presumir: ${g}`,
+    badgeText: "Añade este distintivo a tu web. Enlaza a este informe, así los visitantes pueden ver los detalles.",
+    copyCode: "Copiar código",
+    codeCopied: "Código copiado",
+    badgeAlt: (s) => `Puntuación de crecimiento ${s}/100`,
   },
   de: {
     menu: {
@@ -429,6 +450,13 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
     leads: (a) => `Vor allen Wettbewerbern bei ${a}.`,
     trails: (a, r) => `Hinter ${r} bei ${a}.`,
     compareFailed: (d) => `${d} konnte nicht geprüft werden und wird daher weggelassen.`,
+    benchmark: (a, t) => `Durchschnitt aus ${t} geprüften Websites: ${a}`,
+    betterThan: (p) => `besser als ${p} %`,
+    badgeTitle: (g) => `Ein Ergebnis zum Zeigen: ${g}`,
+    badgeText: "Binden Sie dieses Abzeichen auf Ihrer Website ein. Es verlinkt auf diesen Bericht, damit Besucher die Details sehen.",
+    copyCode: "Code kopieren",
+    codeCopied: "Code kopiert",
+    badgeAlt: (s) => `Wachstums-Score ${s}/100`,
   },
 };
 

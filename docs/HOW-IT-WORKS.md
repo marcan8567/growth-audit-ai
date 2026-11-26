@@ -267,6 +267,14 @@ A fold-out "Compare with competitors (optional)" with two fields. Without compet
 | **Checked before the rate limit** | A typo in a competitor address doesn't use up a free audit; duplicates and the audited site itself are dropped |
 | **One failure doesn't stop the rest** | A competitor that can't be read gets a one-line note; the main audit and the other competitor carry on |
 
+## 22. Benchmark and score badge
+
+**Benchmark** (`getBenchmark` in `lib/store/reports.ts`, `/api/benchmark`): every saved audit adds its score to a small histogram in Redis (`scorehist:<env>`, one counter per score). The report cover shows the average across all audited websites and the share that scored lower, on a 0–100 scale. It is loaded live, so old reports always show today's numbers. The demo company isn't counted, and nothing shows until there are 10 audits.
+
+**Score badge** (`/api/badge/<reportId>`): for scores of 70 and up ("Strong" or "Excellent"), the report offers an SVG badge and a copy-ready embed code. The badge links back to the report, so a good result becomes a reason for the company to put the tool on its own website. Lower scores get no badge, so it stays a distinction. The SVG is plain shapes and text, in the report's language, cached for a day.
+
+**Talking point:** "Two growth loops: the benchmark gives the score meaning and a reason to improve, and the badge turns top scores into backlinks."
+
 ## Known limits (honest answers if asked)
 
 - Sites that build their content in the browser with JavaScript only (some single-page apps) return little text, because the reader doesn't run a browser. The fix would be a headless browser, which costs more and is slower.
