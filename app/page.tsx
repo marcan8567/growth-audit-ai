@@ -207,8 +207,6 @@ function AuditsSoFar({ overview }: { overview: AuditOverview }) {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-20">
       <div className="relative overflow-hidden rounded-3xl bg-ink p-8 text-white sm:p-10">
-        {/* A soft glow in the logo's yellow, top right */}
-        <div aria-hidden="true" className="pointer-events-none absolute -right-32 -top-40 h-96 w-96 rounded-full bg-marker/20 blur-3xl" />
         <div className="relative grid gap-10 lg:grid-cols-12 lg:items-center">
           <div className="grid grid-cols-2 gap-8 lg:col-span-4">
             <div>
