@@ -19,5 +19,5 @@ Overview and folder map: `README.md`. Every design decision and known limit: `do
 - Report text exists in English, Spanish and German (`lib/i18n.ts`, `lib/report-text.ts`). Add new labels in all three.
 - `lib/ai/*` is `server-only`; never import it from client components.
 - Keys live in `.env.local` (git-ignored). Only `.env.example` holds variable names. Never use a `NEXT_PUBLIC_` prefix for keys.
-- Cost matters (about $0.026 per audit): don't add AI calls or bigger models without saying the cost impact.
+- Cost matters (about $0.02 per audit, about $0.034 once the Flash price doubles on 1 January 2027): don't add AI calls or bigger models without saying the cost impact.
 - The sample report and screenshots use Stryon Labs (a fictional company). Never audit or name a real company in docs or demos.
