@@ -354,7 +354,7 @@ const COVERS = [
   {
     term: "Keywords",
     icon: "search",
-    text: "The search phrases the site is built around, where each one appears (checked in code), and five worth adding next.",
+    text: "The search phrases the site is built around, where each one appears (checked in code), and up to five worth adding next.",
   },
   {
     term: "Brand voice",

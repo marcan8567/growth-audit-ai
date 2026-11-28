@@ -168,6 +168,16 @@ Every AI call logs its token counts (`[usage]` lines in Vercel → Logs), so cos
 
 **Talking point:** "I measured cost per step before optimising. Most of the bill was the model's hidden reasoning, so I turned that down, and moved the two simplest steps to a model a fifth of the price. Cost dropped about 60% with no visible loss in the parts people read."
 
+**Second round (November 2026), measured on the same three sites before and after:** about **11% cheaper** per audit ($0.0221 → $0.0197; 12% at January prices), with the same scores (±1), all quotes verified and no retries.
+
+| Change | Effect |
+| --- | --- |
+| **Fewer retries**: an X post a few characters over 280 loses hashtags in code instead of a whole retry; the post aims for 250; a keyword suggestion over 5 words is dropped instead of redone; a near-perfect area may have no issues | Retries happened in about half of the audits and repeat a full AI call. On the audit that would have retried, the saving was 20% |
+| **Shorter audit output**: at most 2 strengths, 2 issues and 2 quotes per area, quotes up to 12 words, quick wins in 1 to 2 sentences | The audit's output is the single biggest cost (output costs 5× input on Flash); it dropped 8–15% |
+| **Repeated passages sent once** (`withoutRepeats` in `lib/reader/format.ts`): runs of 12+ identical words already seen on the site are replaced with "…" | 0–8% less website text, because menus and footers were already removed; the quote check still uses the full text |
+
+**Considered and not done: caching the website text between steps.** Gemini's automatic caching needs at least 4,096 tokens on 3.8 Flash (most audit calls are smaller), and the steps run at the same time, so they can't reuse each other. Explicit caching (beta) would save about 10% for the extra complexity of per-model caches and restructured prompts, because about 60% of the cost is output, which caching doesn't touch.
+
 ## 14. Quick wins: one free, the rest on request (`lib/report-access.ts`)
 
 Visitors see the first quick win in full. The others appear as blurred cards behind: *"3 more fixes for basecamp.com, ranked by impact. Message me on LinkedIn and I'll send you the full list, and help you put the fixes in place."*

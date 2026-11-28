@@ -20,7 +20,7 @@ export const postLength = (post: { hook: string; body: string; cta: string; hash
  * The free content sample: two ready-to-post social media posts (LinkedIn, then X), plus the three
  * themes a full content plan would build on (used in the "want the full plan?" call to action).
  */
-export const ContentPackSchema = z
+const ContentPackObject = z
   .object({
     strategy: z.string().min(1),
     pillars: z
@@ -70,5 +70,27 @@ export const ContentPackSchema = z
       }
     });
   });
+
+/**
+ * A post that is only slightly too long (usually a few characters on X) loses hashtags until it fits,
+ * instead of costing a whole retry. Anything still too long after that goes back to the AI as before.
+ */
+function dropHashtagsToFit(input: unknown): unknown {
+  if (!input || typeof input !== "object" || !Array.isArray((input as { posts?: unknown }).posts)) return input;
+  const pack = input as { posts: Record<string, unknown>[] };
+  return {
+    ...pack,
+    posts: pack.posts.map((post) => {
+      if (!post || typeof post !== "object" || !Array.isArray(post.hashtags)) return post;
+      const limit = post.platform === "X" ? X_LIMIT : LINKEDIN_LIMIT;
+      const hashtags = [...(post.hashtags as string[])];
+      const length = () => postLength({ hook: String(post.hook ?? ""), body: String(post.body ?? ""), cta: String(post.cta ?? ""), hashtags });
+      while (hashtags.length && length() > limit) hashtags.pop();
+      return { ...post, hashtags };
+    }),
+  };
+}
+
+export const ContentPackSchema = z.preprocess(dropHashtagsToFit, ContentPackObject);
 
 export type ContentPack = z.infer<typeof ContentPackSchema>;

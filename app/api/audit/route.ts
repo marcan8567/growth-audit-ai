@@ -1,7 +1,7 @@
 import type { ProgressEvent, StepId } from "@/lib/events";
 import { parseLang } from "@/lib/i18n";
 import { runSiteChecks } from "@/lib/reader/checks";
-import { summarizeWebsite } from "@/lib/reader/format";
+import { formatWebsiteForPrompt, summarizeWebsite } from "@/lib/reader/format";
 import { readWebsite } from "@/lib/reader/read-website";
 import { normalizeInputUrl } from "@/lib/reader/url";
 import { fetchPageSpeed, isPageSpeedConfigured, type PageSpeedResult } from "@/lib/reader/pagespeed";
@@ -133,6 +133,8 @@ export async function POST(request: Request) {
           send({ type: "error", step: "read", message: err instanceof Error ? err.message : "Couldn't read the website." });
           return;
         }
+        // How much shorter removing repeated passages makes the website text every AI step receives.
+        console.info(`[website] ${site.domain}: ${formatWebsiteForPrompt(site, { dedupe: false }).length} chars, ${formatWebsiteForPrompt(site).length} after removing repeats`);
         const checks = runSiteChecks(site, lang);
         report.site = summarizeWebsite(site);
         report.checks = checks;

@@ -1,4 +1,5 @@
 import "server-only";
+import type { z } from "zod";
 import { runJsonStep } from "@/lib/ai/run-step";
 import { languageRule } from "@/prompts/shared";
 import type { Lang } from "@/lib/i18n";
@@ -17,11 +18,11 @@ export async function runContentPack(site: WebsiteData, brandVoice: BrandVoiceRe
   const { tone, toneSummary, audience, positioning, keyMessages, wordsTheyUse, wordsToAvoid } = brandVoice.profile;
   const voice = JSON.stringify({ tone, toneSummary, audience, positioning, keyMessages, wordsTheyUse, wordsToAvoid }, null, 2);
 
-  return runJsonStep({
+  return runJsonStep<ContentPack>({
     name: "Social media post",
     system: CONTENT_PACK_SYSTEM,
     user: contentPackUserPrompt(formatWebsiteForPrompt(site), voice) + languageRule(lang),
-    schema: ContentPackSchema,
+    schema: ContentPackSchema as z.ZodType<ContentPack>,
     tier: "smart",
     maxTokens: 2_500,
   });

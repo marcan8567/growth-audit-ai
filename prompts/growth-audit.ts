@@ -39,17 +39,17 @@ ${JSON_ONLY}
     {
       "id": "one of: ${AUDIT_CATEGORIES.map((c) => c.id).join(", ")}",
       "score": 0,
-      "verdict": "one sentence explaining the score",
-      "strengths": ["0 to 3 specific things the site does well in this area"],
-      "issues": ["1 to 3 specific problems or gaps in this area"],
-      "evidence": [{ "quote": "short exact quote (max 15 words) copied character-for-character from the website", "pageUrl": "URL of the page it is from" }]
+      "verdict": "one short sentence explaining the score",
+      "strengths": ["0 to 2 specific things the site does well in this area, one short sentence each"],
+      "issues": ["0 to 2 specific problems or gaps in this area, one short sentence each (none if the area is excellent)"],
+      "evidence": [{ "quote": "short exact quote (max 12 words) copied character-for-character from the website", "pageUrl": "URL of the page it is from" }]
     }
   ],
   "quickWins": [
     {
       "title": "short name of the change",
-      "action": "exactly what to do, specific to this company",
-      "why": "the expected effect on growth",
+      "action": "exactly what to do, specific to this company, in 1 or 2 sentences",
+      "why": "the expected effect on growth, in one sentence",
       "category": "the category id this improves",
       "effort": "low | medium | high",
       "impact": "low | medium | high"
@@ -57,5 +57,5 @@ ${JSON_ONLY}
   ]
 }
 
-Include all ${AUDIT_CATEGORIES.length} categories exactly once, in the order listed. Give 0 to 3 evidence quotes per category and 3 to 5 quick wins, best first.`;
+Include all ${AUDIT_CATEGORIES.length} categories exactly once, in the order listed. Give 0 to 2 evidence quotes per category and 3 to 5 quick wins, best first. Be concise: short sentences, no repetition between fields.`;
 }

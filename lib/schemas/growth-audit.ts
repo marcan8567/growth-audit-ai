@@ -23,11 +23,12 @@ export const GrowthAuditSchema = z.object({
         id: CategoryId,
         score: z.number().int().min(0).max(10),
         verdict: z.string().min(1),
-        strengths: z.array(z.string().min(1)).max(3),
-        issues: z.array(z.string().min(1)).min(1).max(3),
+        // Kept short on purpose: the audit's output is the most expensive part of an audit (see docs, section 13).
+        strengths: z.array(z.string().min(1)).max(2),
+        issues: z.array(z.string().min(1)).max(2), // none is fine for an area that is already excellent
         evidence: z
           .array(z.object({ quote: z.string().min(1), pageUrl: z.string().min(1) }))
-          .max(3),
+          .max(2),
       }),
     )
     .length(AUDIT_CATEGORIES.length)

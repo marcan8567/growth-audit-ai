@@ -51,5 +51,5 @@ ${JSON_ONLY}
 }
 
 Rules: exactly 3 themes and exactly 2 posts, LinkedIn first, then X.
-The LinkedIn post must be at most ${LINKEDIN_LIMIT} characters in total and the X post at most ${X_LIMIT} (hook + body + cta + hashtags).`;
+The LinkedIn post must be at most ${LINKEDIN_LIMIT} characters in total and the X post at most ${X_LIMIT} (hook + body + cta + hashtags). Aim for about 250 characters on X, so it stays safely under the limit.`;
 }

@@ -165,7 +165,7 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
     speedScores: { performance: "Performance", seo: "SEO", accessibility: "Accessibility", bestPractices: "Best practices" },
     keywordsTitle: "Keywords",
     keywordsSubtitle:
-      "The search phrases the website is built around, and five worth adding. The AI suggests the phrases; where each one appears is checked in code. These are not Google rankings.",
+      "The search phrases the website is built around, and up to five worth adding. The AI suggests the phrases; where each one appears is checked in code. These are not Google rankings.",
     targetsToday: "Targets today",
     places: { title: "Title", h1: "H1", headings: "Headings", meta: "Meta", url: "URL" },
     mentions: "Mentions",
@@ -283,7 +283,7 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
     speedScores: { performance: "Rendimiento", seo: "SEO", accessibility: "Accesibilidad", bestPractices: "Buenas prácticas" },
     keywordsTitle: "Palabras clave",
     keywordsSubtitle:
-      "Las búsquedas en torno a las que está construido el sitio, y cinco que vale la pena añadir. La IA propone las frases; dónde aparece cada una lo comprueba el código. No son posiciones en Google.",
+      "Las búsquedas en torno a las que está construido el sitio, y hasta cinco que vale la pena añadir. La IA propone las frases; dónde aparece cada una lo comprueba el código. No son posiciones en Google.",
     targetsToday: "Objetivos actuales",
     places: { title: "Título", h1: "H1", headings: "Encabezados", meta: "Meta", url: "URL" },
     mentions: "Menciones",
@@ -401,7 +401,7 @@ export const REPORT_TEXT: Record<Lang, ReportText> = {
     speedScores: { performance: "Leistung", seo: "SEO", accessibility: "Barrierefreiheit", bestPractices: "Best Practices" },
     keywordsTitle: "Keywords",
     keywordsSubtitle:
-      "Die Suchbegriffe, um die die Website aufgebaut ist, und fünf, die sich lohnen. Die KI schlägt die Begriffe vor; wo jeder vorkommt, prüft der Code. Das sind keine Google-Rankings.",
+      "Die Suchbegriffe, um die die Website aufgebaut ist, und bis zu fünf, die sich lohnen. Die KI schlägt die Begriffe vor; wo jeder vorkommt, prüft der Code. Das sind keine Google-Rankings.",
     targetsToday: "Aktuelle Ziele",
     places: { title: "Titel", h1: "H1", headings: "Überschriften", meta: "Meta", url: "URL" },
     mentions: "Nennungen",
